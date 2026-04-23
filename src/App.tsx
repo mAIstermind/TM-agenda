@@ -26,25 +26,18 @@ import { generateMeetingAgenda } from './services/gemini';
 // --- Components ---
 
 const TopBar = () => (
-  <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 h-20 bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm">
-    <div className="flex items-center gap-4">
-      <div className="w-4 h-4 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.6)] animate-pulse"></div>
-      <div>
-        <div className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 leading-none mb-1">TM-PRO Agenda</div>
-        <div className="text-slate-900 font-extrabold text-2xl tracking-tighter leading-none">Toastmaster Architect</div>
+  <header className="fixed top-0 left-0 w-full z-50 flex flex-col md:flex-row justify-between items-start md:items-end px-8 pt-8 pb-4 bg-slate-50/80 backdrop-blur-xl">
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <div className="w-3 h-3 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.5)]"></div>
+        <span className="text-xs font-bold tracking-[0.2em] uppercase text-blue-600">TM-PRO Agenda System</span>
       </div>
+      <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Inspiring Speakers PDC</h1>
     </div>
-    <div className="flex items-center gap-5">
-      <div className="hidden md:flex bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 flex-col">
-        <span className="text-[10px] uppercase font-black text-slate-400">Database</span>
-        <span className="text-xs font-bold text-slate-700">Teable Connected</span>
-      </div>
-      <button className="p-2.5 hover:bg-slate-50 rounded-2xl transition-all relative group active:scale-90">
-        <Bell className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors" />
-        <span className="absolute top-3 right-3 w-2 h-2 bg-blue-600 rounded-full border-2 border-white"></span>
-      </button>
-      <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-inner">
-        <UserCircle className="text-blue-600 w-7 h-7" />
+    <div className="flex gap-4 items-center mt-4 md:mt-0">
+      <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+        <span className="text-[10px] uppercase font-bold text-slate-400">Source Database</span>
+        <span className="text-sm font-semibold">Teable: Meeting_Roster</span>
       </div>
     </div>
   </header>
@@ -135,7 +128,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-24 md:pb-8">
       <TopBar />
       
-      <main className="pt-28 px-6 max-w-6xl mx-auto">
+      <main className="pt-32 px-10 max-w-[1400px] mx-auto overflow-hidden">
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
             <motion.div
@@ -143,44 +136,21 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-12 gap-6"
+              className="grid grid-cols-12 auto-rows-min gap-6"
             >
-              {/* Header Block */}
-              <div className="md:col-span-12 mb-2">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                  <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Master Meeting Architect</h1>
-                    <p className="text-slate-500 font-medium mt-1">Tuesday, October 24, 2023 • Inspiring Speakers PDC</p>
-                  </div>
-                  <button 
-                    onClick={handleGenerateAgenda}
-                    disabled={isGenerating}
-                    className="bg-blue-600 px-8 py-4 rounded-2xl shadow-xl shadow-blue-200 text-white font-bold flex items-center gap-3 transition-all hover:scale-105 active:scale-95 disabled:bg-slate-300"
-                  >
-                    {isGenerating ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                    {isGenerating ? 'Synthesizing...' : 'Regenerate Agenda'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Main Agenda Preview / Roster Block (Col 1-8) */}
-              <div className="md:col-span-8 bg-white rounded-4xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 flex flex-col min-h-[500px]">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-6 mb-8">
+              {/* Main Agenda Preview Block */}
+              <div className="col-span-12 lg:col-span-8 bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-200 p-8 flex flex-col min-h-[600px]">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 rounded-xl text-blue-600">
-                      <CalendarDays className="w-6 h-6" />
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                      <CalendarDays className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800">Live Agenda Draft</h2>
-                      <p className="text-xs font-mono text-slate-400">Gemini 1.5 Lite Optimized</p>
-                    </div>
+                    <h2 className="text-xl font-bold">Live Markdown Preview</h2>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-lg uppercase tracking-wider">Draft v2.4</span>
-                  </div>
+                  <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">Gemini 1.5 Lite Optimized</span>
                 </div>
-
-                <div className="flex-grow">
+                
+                <div className="flex-grow overflow-y-auto">
                   {agenda ? (
                     <div className="prose prose-slate max-w-none">
                       <ReactMarkdown>{agenda}</ReactMarkdown>
@@ -190,69 +160,67 @@ export default function App() {
                       <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
                         <Sparkles className="w-10 h-10 text-slate-200" />
                       </div>
-                      <h3 className="text-lg font-bold text-slate-400">Ready to synthesize</h3>
+                      <h3 className="text-lg font-bold text-slate-400 italic">No Agenda Drafted</h3>
                       <p className="text-sm text-slate-400 mt-2 max-w-xs mx-auto">Click regenerate to apply 25 years of expertise into a high-energy meeting script.</p>
+                      <button 
+                        onClick={handleGenerateAgenda}
+                        className="mt-8 bg-blue-600 px-6 py-3 rounded-xl shadow-lg shadow-blue-200 text-white font-bold cursor-pointer hover:bg-blue-700 transition-colors"
+                      >
+                        Generate Agenda Now
+                      </button>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Side Panels (Col 9-12) */}
-              <div className="md:col-span-4 flex flex-col gap-6">
+              {/* Side Panels */}
+              <div className="col-span-12 lg:col-span-4 space-y-6">
                 {/* Confirmed Roster Block */}
-                <div className="bg-white rounded-3xl border border-slate-100 p-6 flex flex-col shadow-sm">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Confirmed Roster</h3>
-                  <div className="space-y-2">
-                    {roster.filter(r => r.status === 'Confirmed').slice(0, 4).map(role => (
-                      <div key={role.id} className="flex justify-between items-center text-sm p-3 bg-blue-50/40 rounded-xl">
-                        <span className="font-medium text-slate-600">{role.role}</span>
-                        <span className="font-extrabold text-blue-700">{role.name.split(',')[0]}</span>
+                <div className="bg-white rounded-[2rem] border border-slate-200 p-6 flex flex-col shadow-sm">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Confirmed Roster</h3>
+                  <div className="space-y-3">
+                    {roster.filter(r => r.status === 'Confirmed').slice(0, 5).map(role => (
+                      <div key={role.id} className="flex justify-between items-center text-sm p-2 bg-blue-50/50 rounded-xl">
+                        <span className="font-medium text-slate-600 truncate mr-2">{role.role}</span>
+                        <span className="font-bold text-blue-700 whitespace-nowrap">{role.name.split(',')[0]}</span>
                       </div>
                     ))}
                     <button 
                       onClick={() => setActiveTab('roles')}
-                      className="w-full py-2 text-[10px] uppercase font-black text-slate-300 hover:text-blue-600 transition-colors"
+                      className="w-full pt-2 text-[10px] font-bold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
                     >
-                      View Full Roster
+                      Full Roster Details &rarr;
                     </button>
                   </div>
                 </div>
 
                 {/* AI Intelligence Block */}
-                <div className="bg-slate-900 rounded-3xl p-7 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Sparkles className="w-16 h-16 rotate-12" />
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2rem] p-8 text-white flex flex-col justify-between shadow-xl min-h-[220px]">
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-bold opacity-60 uppercase tracking-widest">AI Intelligence Layer</h3>
+                    <p className="text-lg font-semibold leading-snug">Applying 25-year expertise for high-energy transitions.</p>
                   </div>
-                  <div className="space-y-2 relative z-10">
-                    <h3 className="text-[10px] font-black opacity-50 uppercase tracking-widest flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-                      AI Intelligence Layer
-                    </h3>
-                    <p className="text-xl font-bold leading-tight">Applying 25-year expertise for high-energy transitions.</p>
-                  </div>
-                  <div className="mt-8 flex items-center gap-3 relative z-10 pt-4 border-t border-white/10">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xs ring-4 ring-blue-600/20">G</div>
-                    <span className="text-[10px] font-mono opacity-60 tracking-wider">GEMINI_3_FLASH_ACTIVE</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center font-black shadow-lg shadow-blue-500/30">G</div>
+                    <span className="text-xs font-mono opacity-80 tracking-widest">GEMINI_1.5_LITE_ACTIVE</span>
                   </div>
                 </div>
 
                 {/* Vacancies Block */}
-                <div className="bg-amber-100 rounded-3xl border-2 border-amber-200 p-6 flex flex-col shadow-sm">
+                <div className="bg-amber-100 rounded-[2rem] border-2 border-amber-200 p-6 flex flex-col shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-black text-amber-900 uppercase tracking-tight">Vacancies</h3>
-                    <div className="px-2 py-0.5 bg-amber-600 text-white text-[9px] font-black rounded uppercase tracking-widest">Urgent</div>
+                    <div className="px-2 py-1 bg-amber-600 text-white text-[10px] font-bold rounded uppercase">Urgent</div>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {vacantRoles.length > 0 ? vacantRoles.map(vr => (
-                      <span key={vr.id} className="bg-white px-3 py-1.5 rounded-full text-[10px] font-extrabold text-amber-800 border border-amber-200 shadow-sm">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {vacantRoles.slice(0, 3).map(vr => (
+                      <span key={vr.id} className="bg-white px-3 py-1.5 rounded-full text-xs font-bold text-amber-800 border border-amber-300 shadow-sm">
                         {vr.role}
                       </span>
-                    )) : (
-                      <span className="text-amber-800 font-bold text-xs italic">All roles filled! 🎉</span>
-                    )}
+                    ))}
                   </div>
-                  <p className="text-[11px] text-amber-700 font-bold mb-6">Building next week's momentum starts with filling these slots today.</p>
-                  <button className="mt-auto w-full bg-amber-900 text-white py-4 rounded-2xl font-extrabold hover:bg-amber-950 transition-all active:scale-95 text-xs shadow-lg shadow-amber-900/10">
+                  <p className="text-xs text-amber-700 mb-6 font-medium">Encourage sign-ups at the bottom of the agenda to build next week's momentum!</p>
+                  <button className="mt-auto w-full bg-amber-900 text-white py-4 rounded-2xl font-bold hover:bg-amber-800 transition-colors shadow-lg shadow-amber-900/20">
                     Generate Recruitment Post
                   </button>
                 </div>
