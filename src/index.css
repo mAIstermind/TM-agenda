@@ -1,8 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Outfit", ui-sans-serif, system-ui, sans-serif;
   
   --color-primary: #2563eb;
   --color-primary-container: #eff6ff;
@@ -18,6 +19,12 @@
   --color-on-surface-variant: #64748b;
   --color-outline: #e2e8f0;
   --color-outline-variant: #cbd5e1;
+
+  --color-tm-navy: #004165;
+  --color-tm-maroon: #772432;
+  --color-tm-gold: #f2df74;
+  --color-tm-silver: #a9b2b1;
+  --color-tm-grey: #f2f2f2;
 
   --radius-3xl: 1.5rem;
   --radius-4xl: 2rem;
@@ -37,3 +44,39 @@
 .prose li { @apply flex items-start gap-4 p-4 bg-slate-50 rounded-2xl; }
 .prose blockquote { @apply border-l-4 border-blue-500 pl-8 italic my-10 text-slate-600 text-xl font-medium py-2 bg-white rounded-r-3xl shadow-sm border border-slate-100; }
 
+/* Print Optimization */
+@media print {
+  body, html {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide everything except the agenda */
+  body > *:not(main) {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .no-print, header, nav, button, .lucide {
+    display: none !important;
+  }
+
+  /* Target the agenda specifically */
+  .printable-area {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

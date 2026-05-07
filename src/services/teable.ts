@@ -6,72 +6,198 @@
 import { MeetingRole } from '../types';
 
 const API_KEY = (import.meta as any).env.VITE_TEABLE_API_KEY;
-const BASE_ID = (import.meta as any).env.VITE_TEABLE_BASE_ID;
 const TABLE_ID = (import.meta as any).env.VITE_TEABLE_TABLE_ID;
+const MEMBERS_TABLE_ID = (import.meta as any).env.VITE_TEABLE_MEMBERS_TABLE_ID;
 
-const TEABLE_API_URL = 'https://api.teable.io/api';
+const TEABLE_API_URLS = [
+  'https://app.teable.io/api',
+  'https://app.teable.ai/api'
+];
 
-/**
- * Fetch records from Teable Meeting_Roster table.
- */
-export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
-  if (!API_KEY || !BASE_ID || !TABLE_ID) {
-    console.warn('Teable API key or Base/Table ID missing. Returning mock data.');
-    return getMockRoster();
-  }
+let currentApiUrl = TEABLE_API_URLS[0];
 
-  try {
-    const response = await fetch(`${TEABLE_API_URL}/base/${BASE_ID}/table/${TABLE_ID}/record`, {
+async function teableFetch(urlPath: string, method: string, body?: any): Promise<any> {
+  if (!API_KEY) return { ok: false, status: 401 };
+  
+  const tryRequest = async (baseUrl: string) => {
+    const url = urlPath.startsWith('http') ? urlPath : `${baseUrl}${urlPath}`;
+    return fetch(url, {
+      method,
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
       },
+      body: body ? JSON.stringify(body) : undefined,
     });
+  };
 
-    if (!response.ok) {
-      throw new Error(`Teable API error: ${response.statusText}`);
+  try {
+    let response = await tryRequest(currentApiUrl);
+    
+    if (!response.ok && (response.status === 404 || response.status === 502 || response.status === 0)) {
+      const otherUrl = TEABLE_API_URLS.find(u => u !== currentApiUrl)!;
+      const response2 = await tryRequest(otherUrl);
+      if (response2.ok) {
+        currentApiUrl = otherUrl;
+        return response2;
+      }
     }
-
-    const data = await response.json();
-    const nextTuesday = new Date();
-    nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - nextTuesday.getDay()) % 7));
-    const dateStr = nextTuesday.toISOString().split('T')[0];
-
-    return data.records
-      .map((record: any) => ({
-        id: record.id,
-        role: record.fields.Role || record.fields.role,
-        name: record.fields.Name || record.fields.name || 'Open Role',
-        status: record.fields.Status || record.fields.status,
-        date: record.fields.Date || record.fields.date,
-      }))
-      .filter((record: MeetingRole) => 
-        record.status === 'Confirmed' || record.status === 'Open' || record.status === 'Vacant'
-      );
-  } catch (error) {
-    console.error('Error fetching from Teable:', error);
-    return getMockRoster();
+    return response;
+  } catch (err) {
+    return { ok: false, status: 500 };
   }
 }
 
-function getMockRoster(): MeetingRole[] {
-  const nextTuesday = new Date();
-  nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - nextTuesday.getDay()) % 7));
-  const dateStr = nextTuesday.toISOString().split('T')[0];
+export async function fetchMembers(): Promise<any[]> {
+  try {
+    const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record`, 'GET');
+    if (!response || !response.ok) return [];
+    
+    const data = await (response as Response).json();
+    return (data.records || []).map((r: any) => ({
+      id: r.id,
+      name: r.fields?.Name || r.fields?.name || '',
+      status: r.fields?.Status || r.fields?.status || '',
+      committeeRole: r.fields?.Committee_Role || r.fields?.committee_role || '',
+      currentPathway: r.fields?.Current_Pathway || '',
+      currentLevel: r.fields?.Current_Level || '',
+      latestSpeechNumber: r.fields?.Latest_Speech_Number || '',
+      latestSpeechTitle: r.fields?.Speech_Title || r.fields?.latest_speech_title || '',
+      latestSpeechDuration: r.fields?.Duration || r.fields?.latest_speech_duration || ''
+    })).filter((m: any) => m.name && m.name.trim() !== ''); 
+  } catch (error) { 
+    return []; 
+  }
+}
 
-  return [
-    { id: '1', role: 'Toastmaster of the Day', name: 'David Chen, DTM', status: 'Confirmed', date: dateStr },
-    { id: '2', role: 'General Evaluator', name: 'Sarah Jenkins', status: 'Confirmed', date: dateStr },
-    { id: '3', role: 'Grammarian', name: '', status: 'Open', date: dateStr },
-    { id: '4', role: 'Timer', name: 'Elena Gilbert', status: 'Confirmed', date: dateStr },
-    { id: '5', role: 'Ah-counter', name: '', status: 'Open', date: dateStr },
-    { id: '6', role: 'Table Topics Master', name: 'Marcus Rivera', status: 'Confirmed', date: dateStr },
-    { id: '7', role: 'Speaker #1', name: '', status: 'Open', date: dateStr },
-    { id: '8', role: 'Speaker #2', name: 'Jennifer Lopez', status: 'Confirmed', date: dateStr },
-    { id: '9', role: 'Speech Evaluator #1', name: '', status: 'Open', date: dateStr },
-    { id: '10', role: 'Speech Evaluator #2', name: 'Robert Brown', status: 'Confirmed', date: dateStr },
-    { id: '11', role: 'Speaker #3', name: '', status: 'Open', date: dateStr },
-    { id: '12', role: 'Speech Evaluator #3', name: '', status: 'Open', date: dateStr },
-    { id: '13', role: 'Sergeant-at-Arms', name: 'Tom Hardy', status: 'Confirmed', date: dateStr },
-  ];
+export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
+  try {
+    const response = await teableFetch(`/table/${TABLE_ID}/record`, 'GET');
+    if (!response || !response.ok) return getMockRoster();
+    
+    const data = await (response as Response).json();
+    return (data.records || []).map((record: any) => ({
+      id: record.id,
+      role: record.fields?.Role || record.fields?.role || 'Unassigned Role',
+      name: record.fields?.Name || record.fields?.name || '',
+      status: record.fields?.Status || record.fields?.status || 'Vacant',
+      date: record.fields?.Date || new Date().toISOString(),
+      duration: record.fields?.Duration || record.fields?.duration || '',
+      intro_duration: record.fields?.Intro_Duration || '',
+      report_duration: record.fields?.Report_Duration || '',
+      speech_title: record.fields?.Speech_Title || '',
+      pathway: record.fields?.Pathway || '',
+      level: record.fields?.Level || '',
+      project_number: record.fields?.Project_Number || '',
+      theme: record.fields?.Theme || '',
+      wotd: record.fields?.Word_of_the_Day || '',
+      meaning: record.fields?.Word_Meaning || '',
+      example: record.fields?.Word_Example || ''
+    }));
+  } catch (error) { 
+    return getMockRoster(); 
+  }
+}
+
+export async function addRosterRoles(roles: string[]): Promise<boolean> {
+  try {
+    const records = roles.map((role) => ({ fields: { Role: role, Status: 'Vacant' } }));
+    const response = await teableFetch(`/table/${TABLE_ID}/record`, 'POST', { records });
+    return response.ok;
+  } catch (error) { return false; }
+}
+
+export async function addRosterRole(role: string): Promise<boolean> {
+  return addRosterRoles([role]);
+}
+
+export async function deleteRosterRoles(recordIds: string[]): Promise<boolean> {
+  try {
+    const params = recordIds.map(id => `recordIds=${id}`).join('&');
+    const response = await teableFetch(`/table/${TABLE_ID}/record?${params}`, 'DELETE');
+    return response.ok;
+  } catch (error) { return false; }
+}
+
+export async function deleteRosterRole(recordId: string): Promise<boolean> {
+  return deleteRosterRoles([recordId]);
+}
+
+export async function updateMeetingRole(recordId: string, name: string | undefined, extraFields: any = {}, isMember: boolean = false): Promise<boolean> {
+  const targetTableId = isMember ? MEMBERS_TABLE_ID : TABLE_ID;
+  const fields: any = { ...extraFields };
+  if (name !== undefined) fields.Name = name;
+  if (!isMember && name !== undefined) fields.Status = name.trim() ? 'Confirmed' : 'Vacant';
+
+  try {
+    // Attempt bulk update format first
+    const response = await teableFetch(`/table/${targetTableId}/record`, 'PATCH', { 
+      records: [{ id: recordId, fields }] 
+    });
+    
+    // If bulk update fails with 404, try individual record update
+    if (!response.ok && response.status === 404) {
+      const response2 = await teableFetch(`/table/${targetTableId}/record/${recordId}`, 'PATCH', { fields });
+      return response2.ok;
+    }
+    
+    return response.ok;
+  } catch (error) { return false; }
+}
+
+export async function unassignRole(recordId: string): Promise<boolean> {
+  // Clear local storage for this role too
+  localStorage.removeItem(`tm_intro_${recordId}`);
+  localStorage.removeItem(`tm_report_${recordId}`);
+  
+  return updateMeetingRole(recordId, '', {
+    Speech_Title: '',
+    Pathway: '',
+    Level: '',
+    Project_Number: '',
+    Duration: '',
+    Intro_Duration: '',
+    Report_Duration: ''
+  });
+}
+
+export async function updateMeetingDetails(roster: MeetingRole[], details: any): Promise<boolean> {
+  const tmod = roster.find(r => r.role.toLowerCase().includes('toastmaster'));
+  const gram = roster.find(r => r.role.toLowerCase().includes('grammarian'));
+  let success = true;
+  if (tmod && details.theme) {
+    if (!await updateMeetingRole(tmod.id, tmod.name, { Theme: details.theme })) success = false;
+  }
+  if (gram && (details.word || details.meaning || details.example)) {
+    if (!await updateMeetingRole(gram.id, gram.name, {
+      Word_of_the_Day: details.word,
+      Word_Meaning: details.meaning,
+      Word_Example: details.example
+    })) success = false;
+  }
+  return success;
+}
+
+export async function updateRoleTitle(recordId: string, newTitle: string): Promise<boolean> {
+  return updateMeetingRole(recordId, undefined, { Role: newTitle });
+}
+
+export async function addMember(name: string, role: string = 'Member'): Promise<boolean> {
+  try {
+    const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record`, 'POST', {
+      records: [{ fields: { Name: name, Committee_Role: role, Status: 'Active' } }]
+    });
+    return response.ok;
+  } catch (error) { return false; }
+}
+
+export async function deleteMember(memberId: string): Promise<boolean> {
+  try {
+    const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record?recordIds[]=${memberId}`, 'DELETE');
+    return response.ok;
+  } catch (error) { return false; }
+}
+
+function getMockRoster(): MeetingRole[] {
+  return [{ id: '1', role: 'Toastmaster of the Day', name: 'David Chen', status: 'Confirmed', date: new Date().toISOString() }];
 }

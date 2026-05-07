@@ -9,6 +9,19 @@ export interface MeetingRole {
   name: string;
   status: 'Confirmed' | 'Open' | 'Vacant';
   date: string;
+  duration?: string;
+  intro_duration?: string;
+  report_duration?: string;
+  project?: string;
+  pathway?: string;
+  level?: string;
+  project_number?: string;
+  speech_title?: string;
+  theme?: string;
+  wotd?: string;
+  meaning?: string;
+  example?: string;
+  order?: number;
 }
 
 export interface ClubOfficer {
@@ -22,4 +35,17 @@ export interface MeetingDetails {
   date: string;
   time: string;
   location: string;
+}
+
+export interface Member {
+  id: string;
+  name: string;
+  email?: string;
+  status: string;
+  committeeRole?: string;
+  currentPathway?: string;
+  currentLevel?: string;
+  latestSpeechNumber?: string;
+  latestSpeechTitle?: string;
+  latestSpeechDuration?: string;
 }
