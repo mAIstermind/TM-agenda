@@ -62,26 +62,33 @@ export const ModernAgenda: React.FC<ModernAgendaProps> = ({ segments, details, w
           <div className="bg-tm-maroon p-8 text-white flex-1 space-y-8">
             <div className="space-y-1">
                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Meeting Date</p>
-               <p className="text-xl font-black leading-tight">{new Date(details.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+               <p className="text-xl font-black leading-tight">
+                 {(() => {
+                   const d = new Date(details.date);
+                   const day = d.getDate();
+                   const suffix = ["th", "st", "nd", "rd"][(day % 10 > 3 || Math.floor(day % 100 / 10) === 1) ? 0 : day % 10];
+                   return `${day}${suffix} ${d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
+                 })()}
+               </p>
             </div>
             
             <div className="space-y-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tm-gold/60 pb-2 border-b border-white/10">Club Officers</p>
-              {officers.map(off => (
-                <div key={off.role} className="space-y-0.5">
-                  <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{off.role}</p>
-                  <p className="text-xs font-black text-tm-gold leading-tight">{off.name}</p>
-                </div>
-              ))}
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tm-gold/60 pb-2 border-b border-white/10">Club Officers</p>
+               {officers.map(off => (
+                 <div key={off.role} className="space-y-0.5">
+                   <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{off.role}</p>
+                   <p className="text-xs font-black text-tm-gold leading-tight">{off.name}</p>
+                 </div>
+               ))}
             </div>
 
             <div className="pt-8 border-t border-white/10">
-              <p className="text-[10px] leading-relaxed opacity-60">Join us at the Aloft Playa del Carmen every Thursday evening at 7 pm</p>
-              <p className="mt-2 text-[10px] font-black text-tm-gold uppercase tracking-widest">InspiringSpeakersPDC.com</p>
+               <p className="text-[10px] leading-relaxed opacity-60">Join us at the Aloft Playa del Carmen every Thursday evening at 7 pm</p>
+               <p className="mt-2 text-[10px] font-black text-tm-gold uppercase tracking-widest">InspiringSpeakersPDC.com</p>
             </div>
           </div>
 
-          <div className="bg-tm-navy p-8 text-white space-y-6">
+          <div className="bg-tm-navy p-8 text-white space-y-6 flex-shrink-0">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-tm-gold rounded-full"></div>
@@ -91,11 +98,11 @@ export const ModernAgenda: React.FC<ModernAgendaProps> = ({ segments, details, w
             </div>
             <div className="space-y-2">
                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Definition</p>
-               <p className="text-xs leading-relaxed font-medium text-slate-300">{wotd.meaning || '---'}</p>
+               <p className="text-[11px] leading-snug font-medium text-slate-300 max-h-32 overflow-y-auto pr-2 custom-scrollbar">{wotd.meaning || '---'}</p>
             </div>
             <div className="space-y-2 bg-white/5 p-4 rounded-xl border border-white/5 italic">
                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-tm-gold/60 not-italic mb-1">Example</p>
-               <p className="text-xs text-slate-200">"{wotd.example || '---'}"</p>
+               <p className="text-[11px] text-slate-200 leading-snug">"{wotd.example || '---'}"</p>
             </div>
           </div>
         </aside>

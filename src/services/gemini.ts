@@ -3,16 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import OpenAI from "openai";
 import { MeetingRole, MeetingDetails } from "../types";
-
-const geminiApiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
-const openAiApiKey = (import.meta as any).env.VITE_OPENAI_API_KEY;
-
-// Initialize clients
-const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
-const openai = openAiApiKey ? new OpenAI({ apiKey: openAiApiKey, dangerouslyAllowBrowser: true }) : null;
 
 export interface AgendaSegment {
   time: string;
@@ -22,80 +13,43 @@ export interface AgendaSegment {
   details?: string;
 }
 
-const GEMINI_MODELS = [
-  "gemini-1.5-flash",
-  "gemini-1.5-flash-002",
-  "gemini-1.5-pro"
-];
+async function tryProxy(prompt: string, systemInstruction: string, provider: 'openai' | 'gemini' = 'openai'): Promise<string> {
+  const rootUrls = [
+    '' // Strictly relative to use middleware tunneling
+  ];
 
-async function wait(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function tryModels(prompt: string, systemInstruction: string): Promise<string> {
-  let lastError: any = null;
-
-  // 1. Try OpenAI first if available (requested by user via providing API key to fix 429s)
-  if (openai) {
-    console.log(`[AI Architect] Attempting OpenAI GPT-4o...`);
+  let lastError = null;
+  for (const root of rootUrls) {
     try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: systemInstruction },
-          { role: "user", content: prompt }
-        ],
-        response_format: { type: "json_object" }
+      const response = await fetch(`${root}/api/ai-proxy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, systemInstruction, provider })
       });
-      console.log(`[AI Architect] Success with OpenAI GPT-4o`);
-      const content = response.choices[0].message.content || "";
-      // OpenAI JSON mode returns an object, but our prompt asks for an array.
-      // We might need to wrap it or handle the "agenda" key if it returns one.
-      return content;
-    } catch (err: any) {
-      lastError = err;
-      console.warn(`[AI Architect] OpenAI fail: ${err.message}`);
-    }
-  }
-
-  // 2. Fallback to Gemini
-  if (genAI) {
-    for (const modelName of GEMINI_MODELS) {
-      console.log(`[AI Architect] Testing Gemini ${modelName}...`);
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
-          const result = await model.generateContent(prompt);
-          console.log(`[AI Architect] Success with Gemini ${modelName}`);
-          return result.response.text();
-        } catch (err: any) {
-          lastError = err;
-          const msg = err.message?.toLowerCase() || "";
-          console.warn(`[AI Architect] Gemini ${modelName} fail: ${msg}`);
-
-          if (msg.includes("404") || msg.includes("not found")) break; 
-          if (msg.includes("429")) { await wait(2000 * attempt); continue; }
-          if (msg.includes("503") || msg.includes("overloaded")) { await wait(1000 * attempt); continue; }
-          
-          break; // Move to next model
-        }
+      if (response.ok) {
+        const data = await response.json();
+        return data.text;
       }
+    } catch (err) {
+      lastError = err;
     }
   }
-
-  throw lastError || new Error("All AI models are currently unavailable.");
+  throw lastError || new Error("All AI Proxy fallbacks failed");
 }
 
 export async function generateMeetingAgenda(roster: MeetingRole[], details: MeetingDetails & { sessionNum: string, wordOfTheDay: string, wordMeaning: string, wordExample: string, announcements: string }): Promise<AgendaSegment[]> {
-  if (!geminiApiKey && !openAiApiKey) throw new Error("No AI API keys detected.");
-
   const confirmed = roster.filter(r => r.status === 'Confirmed');
   
   const prompt = `
 You are the "Agenda Architect" for Inspiring Speakers PDC.
-Generate the agenda as a JSON object with a key "agenda" containing an ARRAY of objects following the MANDATORY FORMAT below.
+Generate the agenda as a JSON object with a key "agenda" containing an ARRAY of objects.
 
-**MANDATORY FORMAT (Follow this precisely):**
+**CRITICAL RULE: "NO INSTRUCTION ECHO"**
+Do NOT copy phrases like "DISPLAY DETAILS" or "[Pathway Name]" into the output. 
+- If you have the data, use it.
+- If data is missing (empty string), use "---" or "TBD".
+
+**MANDATORY FORMAT:**
 1. SAA Calls Meeting to Order (1 min)
 2. SAA welcomes Club President (2 min)
 3. Club President (Isaac Mancilla) introduces the Toastmaster of the Day (2 min)
@@ -107,68 +61,81 @@ Generate the agenda as a JSON object with a key "agenda" containing an ARRAY of 
 9. Ah-Counter intro (1 min)
 10. Toastmaster Introduces TableTopic Master
 11. Conduct Table Topics Session (Calculate time until 19:50)
-12. 19:50 - 20:00 Comfort Break (10 min) - Assign to ""
+12. 19:50 - 20:00 Comfort Break (10 min)
 13. Toastmaster Restarts Meeting (1 min)
-14. TM invites 1st Speech Evaluator to share objectives (1 min) - ASSIGN TO 1ST EVALUATOR NAME
+14. TM invites 1st Speech Evaluator to share objectives (1 min)
 15. Toastmaster introduces speaker #1
-16. Speaker #1 (Details from roster)
-17. [If Speaker #2 exists] TM invites 2nd Speech Evaluator to share objectives (1 min) - ASSIGN TO 2ND EVALUATOR NAME
-18. [If Speaker #2 exists] Toastmaster introduces speaker #2
-19. [If Speaker #2 exists] Speaker #2 (Details from roster)
-20. [If Speaker #3 exists] TM invites 3rd Speech Evaluator to share objectives (1 min) - ASSIGN TO 3RD EVALUATOR NAME
-21. [If Speaker #3 exists] Toastmaster introduces speaker #3
-22. [If Speaker #3 exists] Speaker #3 (Details from roster)
+16. Speaker #1: Use the Speaker Details Template below.
+17. [Repeat for Speaker #2 and #3 if they exist]
 23. [IF A ROLE CONTAINING 'VOTING' EXISTS] Special Voting Session (15 min)
 24. GE invites Evaluators to share reports (1 min)
-25. 1st Speech Evaluator report (2-3 mins)
-26. 2nd Speech Evaluator report (2-3 mins)
-27. 3rd Speech Evaluator report (2-3 mins)
-28. Grammarian report (2-3 mins)
-29. Timer report (2-3 mins)
-30. Ah-Counter report (2-3 mins)
+25. 1st Speech Evaluator report (2-3 min)
+26. 2nd Speech Evaluator report (2-3 min)
+27. 3rd Speech Evaluator report (2-3 min)
+28. Grammarian report (2-3 min)
+29. Timer report (2-3 min)
+30. Ah-Counter report (2-3 min)
 31. General Evaluator provides report (5 min)
-32. Toastmaster Closure (2-3 mins)
-33. VPE confirms roles for next meeting (2-3 mins)
+32. Toastmaster Closure (2-3 min)
+33. VPE confirms roles for next meeting (3 min)
 34. Club President (Isaac Mancilla) announces club business (5 min)
-35. Club President adjourns meeting (Remaining time)
+35. Club President adjourns meeting
 
-**STRICT RULES:**
-- NO "Silence for Written Feedback"
-- NO "Voting for Best Table Topics"
-- Date Format: Day Month Year (e.g. 7th May 2026).
-- President name is Isaac Mancilla.
-- Speeches default to "5-7 mins" (calculate using 7 min).
-- Evaluator reports show "2-3 mins".
+**SPEAKER DETAILS TEMPLATE (Use exactly this in 'details' field):**
+"Pathway: [Data or TBD]
+Project: [Data or TBD]
+Title: [Data or TBD]"
+
+**DYNAMIC FILTERING RULES (STRICT):**
+- You MUST EXCLUDE segments for "SPEAKER #2" or "SPEAKER #3" and their "SPEECH EVALUATOR REPORT" if they are not assigned in the Roster Data.
+- If a speaker is vacant, their entire evaluator block must be DELETED from the JSON.
+- Never include placeholder segments like "SPEAKER #2 (---)".
+
+**TIME CALCULATION & DISPLAY:**
 - Start Time: 19:00.
+- Speaker Intros (TM introduces speaker #1, etc.): Use "1 min".
+- "Toastmaster Introduces TableTopic Master": Use empty duration ("").
+- "Toastmaster Introduces General Evaluator": Use empty duration ("").
+- "Club President adjourns meeting": Use empty duration ("").
+- Duration ranges (4-6, 2-3) MUST be written as text in the duration field.
+- Use the MAX value (6, 3) for the time math.
 
-**Roster:**
-${confirmed.map(r => `- ${r.role}: ${r.name} (Intro: ${r.intro_duration || '1'}m, Rep: ${r.report_duration || ''}m, Title: ${r.speech_title || ''})`).join('\n')}
+**PERFECT EXAMPLE OF OUTPUT:**
+- Segment: "1ST SPEECH EVALUATOR REPORT" | Duration: "2-3 min" | Assigned: "Benjamin Cruz"
+- Segment: "SPEAKER #1" | Duration: "4-6 min" | Assigned: "Isaac Mancilla" | Details: "Pathway: Engaging Humor\\nProject: Level 1, Icebreaker\\nTitle: Be a Newbie"
+
+**ROSTER DATA:**
+${confirmed.map(r => {
+  const pathway = r.pathway?.trim() || "---";
+  const project = r.level?.trim() ? `Level ${r.level}, ${r.project_number || 'Proj'}` : "---";
+  const title = r.speech_title?.trim() || "---";
+  const duration = r.duration?.trim() || "5-7";
+  return `- ${r.role}: ${r.name} | PW: ${pathway} | LVL: ${project} | TITLE: ${title} | DUR: ${duration}`;
+}).join('\n')}
 
 **JSON Schema:**
-Return a JSON object: {"agenda": [{"time": string, "duration": string, "segment": string, "assignedTo": string, "details": string}]}
+{"agenda": [{"time": string, "duration": string, "segment": string, "assignedTo": string, "details": string}]}
 `;
 
   try {
-    const text = await tryModels(prompt, "Return ONLY JSON. No preamble.");
+    const text = await tryProxy(prompt, "Return ONLY JSON. No preamble.", 'openai');
     const cleanText = text.trim().replace(/^```json/, '').replace(/```$/, '');
     const parsed = JSON.parse(cleanText);
     
-    // Handle both direct array (old Gemini style) and {agenda: []} (OpenAI style)
     if (Array.isArray(parsed)) return parsed;
     if (parsed.agenda && Array.isArray(parsed.agenda)) return parsed.agenda;
     
     throw new Error("Invalid AI response format");
   } catch (error: any) {
     console.error("AI Generation Error:", error);
-    throw new Error("AI is currently overloaded. Please wait 1 minute.");
+    throw new Error("AI Proxy failed or is overloaded. Please check Vercel logs.");
   }
 }
 
 export async function editAgendaWithAI(currentAgenda: AgendaSegment[], instruction: string): Promise<AgendaSegment[]> {
-  if (!geminiApiKey && !openAiApiKey) throw new Error("No AI API keys detected.");
   const prompt = `Modify this agenda: "${instruction}"\nAgenda: ${JSON.stringify(currentAgenda)}\nReturn JSON object with key "agenda" containing the modified array.`;
   try {
-    const text = await tryModels(prompt, "Return ONLY JSON.");
+    const text = await tryProxy(prompt, "Return ONLY JSON.", 'openai');
     const cleanText = text.trim().replace(/^```json/, '').replace(/```$/, '');
     const parsed = JSON.parse(cleanText);
     

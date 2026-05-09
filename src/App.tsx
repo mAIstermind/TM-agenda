@@ -149,9 +149,9 @@ export default function App() {
 
   // Persistent Meeting Config
   const [theme, setTheme] = useState(() => localStorage.getItem('tm_theme') || 'Friendship, How to make them happen');
-  const [meetingDate, setMeetingDate] = useState(() => localStorage.getItem('tm_date') || '7th May 2026');
+  const [meetingDate, setMeetingDate] = useState(() => localStorage.getItem('tm_date') || '2026-05-07');
   const [sessionNum, setSessionNum] = useState(() => localStorage.getItem('tm_session_num') || '132');
-  const [announcements, setAnnouncements] = useState(() => localStorage.getItem('tm_announcements') || 'Next meeting confirmed for Thursday 7pm.');
+  const [announcements, setAnnouncements] = useState(() => localStorage.getItem('tm_announcements') || 'We meet every Thursday at 7pm prompt. Please aim to arrive for 6:45pm');
   const [wordOfTheDay, setWordOfTheDay] = useState(() => localStorage.getItem('tm_wotd') || 'Benevolence');
   const [wordMeaning, setWordMeaning] = useState(() => localStorage.getItem('tm_meaning') || 'Disposition to do good.');
   const [wordExample, setWordExample] = useState(() => localStorage.getItem('tm_example') || 'He was known for his benevolence.');
@@ -226,7 +226,8 @@ export default function App() {
     localStorage.setItem(`tm_report_${targetId}`, report);
 
     if (rName.includes('speaker')) {
-      extra.Duration = role.duration || member.latestSpeechDuration || '5-7';
+      const isIcebreaker = !member.latestSpeechNumber || member.latestSpeechNumber === '0';
+      extra.Duration = role.duration || (isIcebreaker ? '4-6' : '5-7');
       extra.Speech_Title = member.latestSpeechTitle || ""; extra.Pathway = member.currentPathway || "";
       extra.Level = member.currentLevel || ""; extra.Project_Number = member.latestSpeechNumber || "";
     }
@@ -240,7 +241,31 @@ export default function App() {
   const handleGenerateAgenda = async () => {
     setIsGenerating(true);
     try {
-      const segments = await generateMeetingAgenda(roster, { theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements, wordOfTheDay, wordMeaning, wordExample });
+      // Merge member profile data into the roster for better speaker details
+      const enrichedRoster = roster.map(r => {
+        if (!r.name || r.status !== 'Confirmed') return r;
+        const member = members.find(m => m.name === r.name);
+        if (!member) return r;
+
+        return {
+          ...r,
+          pathway: r.pathway || member.currentPathway || '',
+          level: r.level || member.currentLevel || '',
+          speech_title: r.speech_title || member.latestSpeechTitle || ''
+        };
+      });
+
+      const segments = await generateMeetingAgenda(enrichedRoster, { 
+        theme, 
+        date: meetingDate, 
+        time: "19:00", 
+        location: "Aloft Playa", 
+        sessionNum, 
+        announcements,
+        wordOfTheDay,
+        wordMeaning,
+        wordExample
+      });
       setAgendaDraft(segments);
       setActiveTab('agenda');
     } catch (error: any) { 
@@ -274,7 +299,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-32">
       <TopBar connectionError={connectionError} />
 
-      <main className="max-w-7xl mx-auto px-8 pt-32 no-print">
+      <main className="max-w-7xl mx-auto px-8 pt-32">
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
             <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
@@ -481,9 +506,10 @@ export default function App() {
         </div>
       </Modal>
 
-      <Modal title="Edit Role Timings" isOpen={modalType === 'edit-role'} onClose={() => setModalType(null)}>
+      <Modal title="Edit Role Details" isOpen={modalType === 'edit-role'} onClose={() => setModalType(null)}>
         <div className="space-y-6">
           <input value={inputData.title || ''} onChange={e => setInputData({...inputData, title: e.target.value})} placeholder="Role Name" className="w-full bg-slate-50 rounded-2xl px-6 py-4 font-black border-none text-xl"/>
+          
           <div className="bg-blue-50 p-6 rounded-3xl space-y-4">
              <div className="flex items-center gap-4">
                 <TimerIcon className="w-5 h-5 text-blue-600"/>
@@ -500,15 +526,43 @@ export default function App() {
                 </div>
              </div>
           </div>
+
+          {inputData.title?.toLowerCase().includes('speaker') && (
+            <div className="bg-orange-50 p-6 rounded-3xl space-y-4 border border-orange-100">
+               <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2"><Sparkles className="w-3 h-3"/> Speaker Details</p>
+               <div className="grid grid-cols-2 gap-3">
+                  <input value={inputData.pathway || ''} onChange={e => setInputData({...inputData, pathway: e.target.value})} placeholder="Pathway" className="w-full bg-white rounded-xl px-4 py-2 text-xs font-bold border border-orange-100"/>
+                  <input value={inputData.level || ''} onChange={e => setInputData({...inputData, level: e.target.value})} placeholder="Level (e.g. 1)" className="w-full bg-white rounded-xl px-4 py-2 text-xs font-bold border border-orange-100"/>
+               </div>
+               <div className="grid grid-cols-2 gap-3">
+                  <input value={inputData.project_number || ''} onChange={e => setInputData({...inputData, project_number: e.target.value})} placeholder="Proj #" className="w-full bg-white rounded-xl px-4 py-2 text-xs font-bold border border-orange-100"/>
+                  <input value={inputData.duration || ''} onChange={e => setInputData({...inputData, duration: e.target.value})} placeholder="Dur (e.g. 5-7)" className="w-full bg-white rounded-xl px-4 py-2 text-xs font-bold border border-orange-100"/>
+               </div>
+               <input value={inputData.speech_title || ''} onChange={e => setInputData({...inputData, speech_title: e.target.value})} placeholder="Speech Title" className="w-full bg-white rounded-xl px-4 py-2 text-xs font-bold border border-orange-100"/>
+            </div>
+          )}
+
           <button onClick={async () => { 
             if(!targetId) return; 
-            // Save locally to bypass Teable schema limitations if necessary
             localStorage.setItem(`tm_intro_${targetId}`, inputData.intro_duration || '');
             localStorage.setItem(`tm_report_${targetId}`, inputData.report_duration || '');
             
+            const extra: any = { 
+              Intro_Duration: inputData.intro_duration, 
+              Report_Duration: inputData.report_duration 
+            };
+
+            if (inputData.title?.toLowerCase().includes('speaker')) {
+              extra.Pathway = inputData.pathway;
+              extra.Level = inputData.level;
+              extra.Project_Number = inputData.project_number;
+              extra.Speech_Title = inputData.speech_title;
+              extra.Duration = inputData.duration;
+            }
+
             setIsLoading(true); 
             await updateRoleTitle(targetId, inputData.title); 
-            await updateMeetingRole(targetId, undefined, { Intro_Duration: inputData.intro_duration, Report_Duration: inputData.report_duration }); 
+            await updateMeetingRole(targetId, undefined, extra); 
             setIsLoading(false); setModalType(null); refreshData(); 
           }} className="w-full py-5 bg-[#004165] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl">Update & Save</button>
         </div>
