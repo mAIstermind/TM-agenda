@@ -97,25 +97,23 @@
     overflow: hidden !important;
   }
 
-  /* Eliminate faint greys */
-  .text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500 {
+  /* Eliminate faint greys - FORCE DEEP BLACK */
+  .text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500, .text-slate-600, .text-gray-600 {
     color: #000000 !important; /* Pure black for print readability */
     font-weight: 700 !important;
   }
 
-  .text-tm-navy, .text-[#004165] {
+  .text-tm-navy {
     color: #004165 !important;
   }
 
-  .text-tm-maroon, .text-[#772432] {
+  .text-tm-maroon {
     color: #772432 !important;
   }
 
   /* Scale fonts for readability on paper */
   .text-xs { font-size: 10pt !important; }
   .text-sm { font-size: 11pt !important; }
-  .text-[10px] { font-size: 9pt !important; }
-  .text-[9px] { font-size: 8pt !important; }
 
   /* Ensure sidebar doesn't eat too much space */
   .agenda-sidebar {

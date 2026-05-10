@@ -48,4 +48,6 @@ export interface Member {
   latestSpeechNumber?: string;
   latestSpeechTitle?: string;
   latestSpeechDuration?: string;
+  profilesRecd?: string;
+  confirmationMsg?: string;
 }

@@ -33,7 +33,7 @@ export default defineConfig(({mode}) => {
                   const { path: teablePath, method, body: teableBody } = JSON.parse(body || '{}');
                   
                   const tryRequest = async (baseUrl: string) => {
-                    const targetUrl = `${baseUrl}/v1${teablePath.startsWith('/v1') ? teablePath.substring(3) : teablePath}`;
+                    const targetUrl = `${baseUrl}/api${teablePath}`;
                     return fetch(targetUrl, {
                       method,
                       headers: {
@@ -44,9 +44,9 @@ export default defineConfig(({mode}) => {
                     });
                   };
 
-                  let response = await tryRequest('https://api.teable.io');
+                  let response = await tryRequest('https://app.teable.ai');
                   if (!response.ok && (response.status === 404 || response.status >= 500)) {
-                    response = await tryRequest('https://app.teable.ai/api');
+                    response = await tryRequest('https://api.teable.io/v1');
                   }
                   
                   const data = await response.json();

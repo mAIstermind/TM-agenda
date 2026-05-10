@@ -38,16 +38,18 @@ export async function fetchMembers(): Promise<any[]> {
       const f = r.fields || {};
       return {
         id: r.id,
-        name: f.Name || f.name || '',
+        name: f.Name || f.name || f["Full Name"] || '',
         status: f.Status || f.status || '',
         committeeRole: f.Committee_Role || f["Committee Role"] || f.committee_role || '',
         currentPathway: f.Pathway || f.pathway || f.Current_Pathway || f["Current Pathway"] || '',
         currentLevel: f.Level || f.level || f.Current_Level || f["Current Level"] || '',
-        latestSpeechNumber: f.Project_Number || f["Project Number"] || f.Latest_Speech_Number || '',
-        latestSpeechTitle: f.Speech_Title || f["Speech Title"] || f.Title || f.latest_speech_title || '',
-        latestSpeechDuration: f.Duration || f.duration || f.latest_speech_duration || ''
+        latestSpeechNumber: f.Project_Number || f["Project Number"] || f["Proj #"] || f.Latest_Speech_Number || '',
+        latestSpeechTitle: f.Speech_Title || f["Speech Title"] || f.Title || f.latest_speech_title || f["Next Title"] || '',
+        latestSpeechDuration: f.Duration || f.duration || f.Dur || f.latest_speech_duration || '',
+        profilesRecd: f["Profiles Rec'd"] || f.profiles_recd || '',
+        confirmationMsg: f["Confirmation Msg"] || f.confirmation_msg || ''
       };
-    }).filter((m: any) => m.name && m.name.trim() !== ''); 
+    }).filter((m: any) => (m.name && m.name.trim() !== '') || (m.id)); 
   } catch (error) { 
     return []; 
   }
@@ -64,18 +66,18 @@ export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
       return {
         id: record.id,
         role: f.Role || f.role || 'Unassigned Role',
-        name: f.Name || f.name || '',
+        name: f.Name || f.name || f["Full Name"] || '',
         status: f.Status || f.status || 'Vacant',
         date: f.Date || new Date().toISOString(),
-        duration: f.Duration || f.duration || '',
+        duration: f.Duration || f.duration || f.Dur || '',
         // Aggressive mapping for Speaker Intros
         intro_duration: f.Intro_Duration || f["Intro Duration"] || f.Intro || '',
         report_duration: f.Report_Duration || f["Report Duration"] || f.Report || '',
         // Aggressive mapping for Speaker Details
-        speech_title: f.Speech_Title || f["Speech Title"] || f.Title || f.title || '',
+        speech_title: f.Speech_Title || f["Speech Title"] || f.Title || f.title || f["Next Title"] || '',
         pathway: f.Pathway || f.pathway || f.Current_Pathway || f["Current Pathway"] || '',
         level: f.Level || f.level || f.Current_Level || f["Current Level"] || '',
-        project_number: f.Project_Number || f["Project Number"] || f.Project || '',
+        project_number: f.Project_Number || f["Project Number"] || f.Project || f["Proj #"] || '',
         theme: f.Theme || f.theme || '',
         wotd: f.Word_of_the_Day || f["Word of the Day"] || '',
         meaning: f.Word_Meaning || f["Word Meaning"] || '',
@@ -117,14 +119,68 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
   if (name !== undefined) fields.Name = name;
   if (!isMember && name !== undefined) fields.Status = name.trim() ? 'Confirmed' : 'Vacant';
 
-  // Support both underscored and spaced field names for consistency
-  if (extraFields.Speech_Title) fields["Speech Title"] = extraFields.Speech_Title;
-  if (extraFields.Project_Number) fields["Project Number"] = extraFields.Project_Number;
-  if (extraFields.Intro_Duration) fields["Intro Duration"] = extraFields.Intro_Duration;
-  if (extraFields.Report_Duration) fields["Report Duration"] = extraFields.Report_Duration;
-  if (extraFields.Committee_Role) fields["Committee Role"] = extraFields.Committee_Role;
-  if (extraFields.Current_Pathway) fields["Current Pathway"] = extraFields.Current_Pathway;
-  if (extraFields.Current_Level) fields["Current Level"] = extraFields.Current_Level;
+  // Support both underscored and spaced field names for consistency with Teable's new schema
+  if (extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title) {
+    const val = extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title;
+    fields["Speech Title"] = val;
+    fields["Next Title"] = val; 
+    fields["latest_speech_title"] = val;
+    fields["title"] = val;
+    fields["Title"] = val;
+    fields["speech_title"] = val;
+  }
+  if (extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number) {
+    const val = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
+    fields["Project Number"] = val;
+    fields["Proj #"] = val; 
+    fields["latest_speech_number"] = val;
+    fields["project_number"] = val;
+    fields["Project"] = val;
+  }
+  if (extraFields.Current_Pathway || extraFields.Pathway || extraFields.pathway) {
+    const val = extraFields.Current_Pathway || extraFields.Pathway || extraFields.pathway;
+    fields["Current Pathway"] = val;
+    fields["Pathway"] = val;
+    fields["pathway"] = val;
+    fields["current_pathway"] = val;
+  }
+  if (extraFields.Current_Level || extraFields.Level || extraFields.level) {
+    const val = extraFields.Current_Level || extraFields.Level || extraFields.level;
+    fields["Current Level"] = val;
+    fields["Level"] = val;
+    fields["level"] = val;
+    fields["current_level"] = val;
+  }
+  if (extraFields.Intro_Duration) {
+    fields["Intro Duration"] = extraFields.Intro_Duration;
+    fields["intro_duration"] = extraFields.Intro_Duration;
+    fields["Intro"] = extraFields.Intro_Duration;
+  }
+  if (extraFields.Report_Duration) {
+    fields["Report Duration"] = extraFields.Report_Duration;
+    fields["report_duration"] = extraFields.Report_Duration;
+    fields["Report"] = extraFields.Report_Duration;
+  }
+  if (extraFields.Committee_Role) {
+    fields["Committee Role"] = extraFields.Committee_Role;
+    fields["Committee_Role"] = extraFields.Committee_Role;
+    fields["committee_role"] = extraFields.Committee_Role;
+  }
+  if (extraFields.Duration) {
+    fields["Dur"] = extraFields.Duration; 
+    fields["Duration"] = extraFields.Duration;
+    fields["duration"] = extraFields.Duration;
+  }
+  
+  // NEW REQUESTED FIELDS
+  if (extraFields.Profiles_Recd) {
+    fields["Profiles Rec'd"] = extraFields.Profiles_Recd;
+    fields["profiles_recd"] = extraFields.Profiles_Recd;
+  }
+  if (extraFields.Confirmation_Msg) {
+    fields["Confirmation Msg"] = extraFields.Confirmation_Msg;
+    fields["confirmation_msg"] = extraFields.Confirmation_Msg;
+  }
 
   try {
     // Attempt bulk update format first

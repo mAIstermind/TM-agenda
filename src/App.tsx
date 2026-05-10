@@ -46,13 +46,13 @@ import { StitchAgenda } from './components/StitchAgenda';
 // --- Components ---
 
 const TopBar = ({ connectionError }: { connectionError: string | null }) => (
-  <header className="fixed top-0 left-0 w-full z-50 flex flex-col md:flex-row justify-between items-start md:items-end px-8 pt-8 pb-4 bg-slate-50/80 backdrop-blur-xl border-b border-slate-100 no-print">
+  <header className="fixed top-0 left-0 w-full z-50 flex flex-col md:flex-row justify-between items-start md:items-end px-4 md:px-8 pt-4 md:pt-8 pb-3 md:pb-4 bg-slate-50/80 backdrop-blur-xl border-b border-slate-100 no-print">
     <div className="space-y-1">
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
         <span className="text-xs font-bold tracking-[0.2em] uppercase text-emerald-600">TM-PRO v2.8 (TITANIUM STABILITY)</span>
       </div>
-      <h1 className="text-4xl font-extrabold tracking-tight text-slate-800">Inspiring Speakers PDC</h1>
+      <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-slate-800">Inspiring Speakers PDC</h1>
     </div>
     <div className="flex gap-4 items-center mt-4 md:mt-0">
       <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 flex flex-col">
@@ -299,27 +299,44 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-32">
       <TopBar connectionError={connectionError} />
 
-      <main className="max-w-7xl mx-auto px-8 pt-32">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 pt-28 md:pt-32">
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
             <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-              <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100 grid grid-cols-1 lg:grid-cols-3 gap-10">
+              <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-xl border border-slate-100 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-10">
                 <div className="lg:col-span-2 space-y-6">
                   <div className="space-y-4">
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Meeting Theme</label>
-                        <input value={theme} onChange={e => setTheme(e.target.value)} className="text-3xl font-black text-slate-800 w-full focus:outline-none bg-transparent"/>
+                        <input value={theme} onChange={e => setTheme(e.target.value)} className="text-xl md:text-3xl font-black text-slate-800 w-full focus:outline-none bg-transparent"/>
                       </div>
-                      <div className="w-24">
+                      <div className="w-20 md:w-24">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Session</label>
-                        <input value={sessionNum} onChange={e => setSessionNum(e.target.value)} className="text-3xl font-black text-blue-600 w-full focus:outline-none bg-transparent"/>
+                        <input value={sessionNum} onChange={e => setSessionNum(e.target.value)} className="text-xl md:text-3xl font-black text-blue-600 w-full focus:outline-none bg-transparent"/>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-6">
                        <div className="flex items-center gap-2">
                           <CalendarDays className="w-4 h-4 text-[#004165]"/>
-                          <input type="text" value={meetingDate} onChange={e => setMeetingDate(e.target.value)} className="font-bold text-slate-400 focus:outline-none bg-transparent w-32" placeholder="Date..."/>
+                          <div className="flex flex-col">
+                            <input 
+                              type="date" 
+                              value={meetingDate} 
+                              onChange={e => setMeetingDate(e.target.value)} 
+                              className="font-bold text-slate-400 focus:outline-none bg-transparent text-sm border-none p-0 cursor-pointer"
+                            />
+                            {meetingDate && (() => {
+                              const parts = meetingDate.split('-');
+                              if (parts.length !== 3) return null;
+                              const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                              if (isNaN(d.getTime())) return null;
+                              const day = d.getDate();
+                              const suffix = ["th","st","nd","rd"][(day % 10 > 3 || Math.floor(day % 100 / 10) === 1) ? 0 : day % 10];
+                              const formatted = `${day}${suffix} ${d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
+                              return <span className="text-[10px] font-black text-[#004165] tracking-wider">{formatted}</span>;
+                            })()}
+                          </div>
                        </div>
                        <div className="flex-1 flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
                           <Megaphone className="w-4 h-4 text-blue-600 shrink-0"/>
@@ -327,11 +344,14 @@ export default function App() {
                        </div>
                     </div>
                   </div>
-                  <div className="pt-6 border-t border-slate-100 flex gap-4">
-                    <button onClick={handleGenerateAgenda} disabled={isGenerating} className="px-8 py-4 bg-[#004165] text-white rounded-2xl font-black flex items-center gap-3 shadow-xl hover:bg-blue-900 transition-all">
-                      {isGenerating ? <Loader2 className="animate-spin w-5 h-5"/> : <Sparkles className="w-5 h-5"/>}
-                      Architect Agenda
-                    </button>
+                  <div className="pt-6 border-t border-slate-100 flex gap-4 flex-wrap items-center">
+                    <div className="flex flex-col gap-1">
+                      <button onClick={handleGenerateAgenda} disabled={isGenerating} className="px-8 py-4 bg-[#004165] text-white rounded-2xl font-black flex items-center gap-3 shadow-xl hover:bg-blue-900 transition-all active:scale-95">
+                        {isGenerating ? <Loader2 className="animate-spin w-5 h-5"/> : <Sparkles className="w-5 h-5"/>}
+                        Generate Agenda
+                      </button>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">do this after you complete the roles</span>
+                    </div>
                     <button onClick={refreshData} className="p-4 bg-slate-100 rounded-2xl text-slate-400 hover:text-[#004165] transition-all"><History/></button>
                   </div>
                 </div>
@@ -339,28 +359,91 @@ export default function App() {
                   <h3 className="italic text-lg font-black text-[#004165]">Word of the Day</h3>
                   <div className="space-y-3">
                     <input value={wordOfTheDay} onChange={e => setWordOfTheDay(e.target.value)} className="font-black text-sm bg-white rounded-xl px-4 py-2 w-full shadow-sm" placeholder="Word"/>
-                    <textarea value={wordMeaning} onChange={e => setWordMeaning(e.target.value)} className="text-xs italic bg-white rounded-xl px-4 py-2 w-full shadow-sm" rows={1} placeholder="Definition"/>
-                    <textarea value={wordExample} onChange={e => setWordExample(e.target.value)} className="text-xs italic bg-white rounded-xl px-4 py-2 w-full shadow-sm" rows={1} placeholder="Example"/>
+                    <textarea value={wordMeaning} onChange={e => setWordMeaning(e.target.value)} className="text-xs italic bg-white rounded-xl px-4 py-2 w-full shadow-sm resize-none" rows={3} placeholder="Definition"/>
+                    <textarea value={wordExample} onChange={e => setWordExample(e.target.value)} className="text-xs italic bg-white rounded-xl px-4 py-2 w-full shadow-sm resize-none" rows={3} placeholder="Example"/>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {roster.slice(0, 9).map(r => <RoleCard key={r.id} role={r} onClaim={handleClaimRole} onEdit={(id) => { setTargetId(id); setInputData({ title: r.role, duration: r.duration, intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${id}`), report_duration: r.report_duration || localStorage.getItem(`tm_report_${id}`) }); setModalType('edit-role'); }} onDelete={async (id) => { if(confirm("Remove?")) { await deleteRosterRole(id); refreshData(); } }} onUnassign={async (id) => { await unassignRole(id); refreshData(); }} />)}
+                 {roster.slice(0, 9).map(r => (
+                   <RoleCard 
+                    key={r.id} 
+                    role={r} 
+                    onClaim={handleClaimRole} 
+                    onEdit={(id) => { 
+                      const rName = r.role.toLowerCase();
+                      const isEvaluator = rName.includes('evaluator') || rName.includes('grammarian') || rName.includes('timer') || rName.includes('ah-counter');
+                      
+                      // Intelligent Defaults
+                      const defaultIntro = isEvaluator || rName.includes('president') || rName.includes('saa') ? '1' : '';
+                      const defaultReport = rName.includes('general evaluator') ? '5' : 
+                                             rName.includes('president') ? '5' :
+                                             isEvaluator ? '2-3' : '';
+
+                      setTargetId(id); 
+                      setInputData({ 
+                        title: r.role, 
+                        duration: r.duration, 
+                        intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${id}`) || defaultIntro, 
+                        report_duration: r.report_duration || localStorage.getItem(`tm_report_${id}`) || defaultReport,
+                        pathway: r.pathway,
+                        level: r.level,
+                        project_number: r.project_number,
+                        speech_title: r.speech_title
+                      }); 
+                      setModalType('edit-role'); 
+                    }} 
+                    onDelete={async (id) => { if(confirm("Remove?")) { await deleteRosterRole(id); refreshData(); } }} 
+                    onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
+                   />
+                 ))}
               </div>
             </motion.div>
           )}
 
           {activeTab === 'roles' && (
-            <motion.div key="roles" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12 bg-white rounded-[3rem] p-12 shadow-sm border border-slate-100">
-              <header className="flex justify-between items-end">
-                <h2 className="text-4xl font-black text-slate-800 tracking-tighter">Roles & Directory</h2>
+            <motion.div key="roles" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12 bg-white rounded-[3rem] p-6 md:p-12 shadow-sm border border-slate-100">
+              <header className="flex justify-between items-end flex-wrap gap-3">
+                <h2 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tighter">Roles & Directory</h2>
                 <div className="flex gap-2">
                   <button onClick={() => setModalType('add-role')} className="px-5 py-2 bg-[#004165] text-white rounded-xl text-xs font-black">+ Role</button>
                   <button onClick={() => setModalType('add-member')} className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black">+ Member</button>
                 </div>
               </header>
               <div className="grid grid-cols-1 gap-4">
-                {roster.map(r => <RoleCard key={r.id} role={r} onClaim={handleClaimRole} onEdit={(id) => { setTargetId(id); setInputData({ title: r.role, duration: r.duration, intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${id}`), report_duration: r.report_duration || localStorage.getItem(`tm_report_${id}`) }); setModalType('edit-role'); }} onDelete={async (id) => { if(confirm("Remove?")) { await deleteRosterRole(id); refreshData(); } }} onUnassign={async (id) => { await unassignRole(id); refreshData(); }} showDuration />)}
+                {roster.map(r => (
+                  <RoleCard 
+                    key={r.id} 
+                    role={r} 
+                    onClaim={handleClaimRole} 
+                    onEdit={(id) => { 
+                      const rName = r.role.toLowerCase();
+                      const isEvaluator = rName.includes('evaluator') || rName.includes('grammarian') || rName.includes('timer') || rName.includes('ah-counter');
+                      
+                      // Intelligent Defaults
+                      const defaultIntro = isEvaluator || rName.includes('president') || rName.includes('saa') ? '1' : '';
+                      const defaultReport = rName.includes('general evaluator') ? '5' : 
+                                             rName.includes('president') ? '5' :
+                                             isEvaluator ? '2-3' : '';
+
+                      setTargetId(id); 
+                      setInputData({ 
+                        title: r.role, 
+                        duration: r.duration, 
+                        intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${id}`) || defaultIntro, 
+                        report_duration: r.report_duration || localStorage.getItem(`tm_report_${id}`) || defaultReport,
+                        pathway: r.pathway,
+                        level: r.level,
+                        project_number: r.project_number,
+                        speech_title: r.speech_title
+                      }); 
+                      setModalType('edit-role'); 
+                    }} 
+                    onDelete={async (id) => { if(confirm("Remove?")) { await deleteRosterRole(id); refreshData(); } }} 
+                    onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
+                    showDuration 
+                  />
+                ))}
               </div>
               
               <div className="mt-20 pt-20 border-t border-slate-100">
@@ -376,7 +459,7 @@ export default function App() {
                         </div>
                       </div>
                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => { setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><Edit2 className="w-4 h-4"/></button>
+                        <button onClick={() => { setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole, profiles_recd: m.profilesRecd, confirmation_msg: m.confirmationMsg }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><Edit2 className="w-4 h-4"/></button>
                         <button onClick={async () => { if(confirm(`Remove ${m.name}?`)) { const success = await deleteMember(m.id); if(success) refreshData(); else alert("Failed to delete."); } }} className="p-2 bg-white rounded-xl shadow-sm text-red-600"><Trash2 className="w-4 h-4"/></button>
                       </div>
                     </div>
@@ -447,15 +530,33 @@ export default function App() {
                       <p className="text-4xl font-black">{currentUser.name}</p>
                       <button onClick={() => { setCurrentUser(null); localStorage.removeItem('tm_user_id'); }} className="text-slate-400 font-bold text-sm">Switch User</button>
                    </div>
-                   <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm space-y-6">
-                      <h3 className="text-xl font-black text-slate-800">My Speech Details</h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <input value={currentUser.currentPathway || ''} onChange={e => setCurrentUser({...currentUser, currentPathway: e.target.value})} placeholder="Pathway" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
-                        <input value={currentUser.currentLevel || ''} onChange={e => setCurrentUser({...currentUser, currentLevel: e.target.value})} placeholder="Level" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
-                      </div>
-                      <input value={currentUser.latestSpeechTitle || ''} onChange={e => setCurrentUser({...currentUser, latestSpeechTitle: e.target.value})} placeholder="Next Title" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
-                      <button onClick={async () => { await updateMeetingRole(currentUser.id, currentUser.name, { Current_Pathway: currentUser.currentPathway, Current_Level: currentUser.currentLevel, Speech_Title: currentUser.latestSpeechTitle }, true); alert("Saved!"); }} className="w-full py-5 bg-[#004165] text-white rounded-2xl font-black shadow-xl">Save Profile</button>
-                   </div>
+                    <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm space-y-6">
+                       <h3 className="text-xl font-black text-slate-800">My Speech Details</h3>
+                       <div className="grid grid-cols-2 gap-4">
+                         <input value={currentUser.currentPathway || ''} onChange={e => setCurrentUser({...currentUser, currentPathway: e.target.value})} placeholder="Pathway" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
+                         <input value={currentUser.currentLevel || ''} onChange={e => setCurrentUser({...currentUser, currentLevel: e.target.value})} placeholder="Level" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
+                       </div>
+                       <input value={currentUser.latestSpeechTitle || ''} onChange={e => setCurrentUser({...currentUser, latestSpeechTitle: e.target.value})} placeholder="Next Title" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
+                       
+                       <button onClick={async () => { 
+                         setIsLoading(true);
+                         const ok = await updateMeetingRole(currentUser.id, currentUser.name, { 
+                           Current_Pathway: currentUser.currentPathway,
+                           Pathway: currentUser.currentPathway,
+                           Current_Level: currentUser.currentLevel,
+                           Level: currentUser.currentLevel,
+                           Speech_Title: currentUser.latestSpeechTitle,
+                           latestSpeechTitle: currentUser.latestSpeechTitle
+                         }, true); 
+                         setIsLoading(false);
+                         if (ok) {
+                           alert("✅ Profile saved!");
+                           refreshData();
+                         } else {
+                           alert("⚠️ Save failed — check your connection. Profile was NOT updated.");
+                         }
+                       }} className="w-full py-5 bg-[#004165] text-white rounded-2xl font-black shadow-xl">Save Profile</button>
+                    </div>
                  </div>
                ) : (
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -472,7 +573,7 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 rounded-[2.5rem] px-8 py-4 shadow-2xl z-50 flex items-center gap-10 no-print">
+      <nav className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 rounded-[2.5rem] px-6 md:px-8 py-3 md:py-4 shadow-2xl z-50 flex items-center gap-6 md:gap-10 no-print">
         {['dashboard', 'roles', 'profile'].map(id => (
           <button key={id} onClick={() => setActiveTab(id)} className={`flex flex-col items-center p-2 rounded-2xl transition-all ${activeTab === id ? 'text-[#004165] bg-blue-50/50 font-bold' : 'text-slate-400'}`}>
             {id === 'dashboard' ? <BarChart3/> : id === 'roles' ? <Users/> : <UserCircle/>}
@@ -561,9 +662,16 @@ export default function App() {
             }
 
             setIsLoading(true); 
-            await updateRoleTitle(targetId, inputData.title); 
-            await updateMeetingRole(targetId, undefined, extra); 
-            setIsLoading(false); setModalType(null); refreshData(); 
+            const titleOk = await updateRoleTitle(targetId, inputData.title); 
+            const fieldsOk = await updateMeetingRole(targetId, undefined, extra); 
+            setIsLoading(false);
+            
+            if (!titleOk || !fieldsOk) {
+              alert("⚠️ Save failed — check your connection and try again. Changes were NOT saved.");
+              return; // Modal stays open
+            }
+            setModalType(null); 
+            refreshData(); 
           }} className="w-full py-5 bg-[#004165] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl">Update & Save</button>
         </div>
       </Modal>
@@ -572,7 +680,28 @@ export default function App() {
         <div className="space-y-6">
           <input value={inputData.name || ''} onChange={e => setInputData({...inputData, name: e.target.value})} placeholder="Name" className="w-full bg-slate-50 rounded-2xl px-6 py-4 font-bold border-none focus:ring-2 focus:ring-blue-600"/>
           <input value={inputData.role || ''} onChange={e => setInputData({...inputData, role: e.target.value})} placeholder="Committee Role" className="w-full bg-slate-50 rounded-2xl px-6 py-4 font-bold border-none focus:ring-2 focus:ring-blue-600"/>
-          <button onClick={async () => { if(!targetId) return; setIsLoading(true); await updateMeetingRole(targetId, inputData.name, { Committee_Role: inputData.role }, true); setIsLoading(false); setModalType(null); refreshData(); }} className="w-full py-5 bg-[#004165] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl">Save Changes</button>
+          
+          <div className="space-y-4 pt-4 border-t border-slate-100">
+            <input value={inputData.profiles_recd || ''} onChange={e => setInputData({...inputData, profiles_recd: e.target.value})} placeholder="Profiles Rec'd" className="w-full bg-slate-50 rounded-xl px-4 py-3 text-sm font-bold border-none"/>
+            <textarea value={inputData.confirmation_msg || ''} onChange={e => setInputData({...inputData, confirmation_msg: e.target.value})} placeholder="Confirmation Msg" className="w-full bg-slate-50 rounded-xl px-4 py-3 text-sm font-bold border-none" rows={2}/>
+          </div>
+
+          <button onClick={async () => { 
+            if(!targetId) return; 
+            setIsLoading(true); 
+            const ok = await updateMeetingRole(targetId, inputData.name, { 
+              Committee_Role: inputData.role,
+              Profiles_Recd: inputData.profiles_recd,
+              Confirmation_Msg: inputData.confirmation_msg
+            }, true); 
+            setIsLoading(false);
+            if (!ok) {
+              alert("⚠️ Save failed — check your connection. Member was NOT updated.");
+              return;
+            }
+            setModalType(null); 
+            refreshData(); 
+          }} className="w-full py-5 bg-[#004165] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl">Save Changes</button>
         </div>
       </Modal>
 
@@ -591,7 +720,7 @@ function Modal({ title, isOpen, onClose, children }: { title: string, isOpen: bo
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-[2.5rem] p-10 max-w-lg w-full shadow-2xl relative">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-[2.5rem] p-6 md:p-10 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-8"><h3 className="text-2xl font-black text-slate-800">{title}</h3><button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full"><X className="w-6 h-6 text-slate-400" /></button></div>
         {children}
       </motion.div>
