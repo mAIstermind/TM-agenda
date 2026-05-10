@@ -541,12 +541,9 @@ export default function App() {
                        <button onClick={async () => { 
                          setIsLoading(true);
                          const ok = await updateMeetingRole(currentUser.id, currentUser.name, { 
-                           Current_Pathway: currentUser.currentPathway,
                            Pathway: currentUser.currentPathway,
-                           Current_Level: currentUser.currentLevel,
                            Level: currentUser.currentLevel,
-                           Speech_Title: currentUser.latestSpeechTitle,
-                           latestSpeechTitle: currentUser.latestSpeechTitle
+                           Speech_Title: currentUser.latestSpeechTitle
                          }, true); 
                          setIsLoading(false);
                          if (ok) {

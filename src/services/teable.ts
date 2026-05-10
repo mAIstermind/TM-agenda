@@ -115,72 +115,37 @@ export async function deleteRosterRole(recordId: string): Promise<boolean> {
 
 export async function updateMeetingRole(recordId: string, name: string | undefined, extraFields: any = {}, isMember: boolean = false): Promise<boolean> {
   const targetTableId = isMember ? MEMBERS_TABLE_ID : TABLE_ID;
-  const fields: any = { ...extraFields };
+  const fields: any = {};
   if (name !== undefined) fields.Name = name;
   if (!isMember && name !== undefined) fields.Status = name.trim() ? 'Confirmed' : 'Vacant';
 
-  // Support both underscored and spaced field names for consistency with Teable's new schema
+  // Map to the most likely Teable field names (Spaced)
   if (extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title) {
-    const val = extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title;
-    fields["Speech Title"] = val;
-    fields["Next Title"] = val; 
-    fields["latest_speech_title"] = val;
-    fields["title"] = val;
-    fields["Title"] = val;
-    fields["speech_title"] = val;
+    fields["Speech Title"] = extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title;
   }
   if (extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number) {
-    const val = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
-    fields["Project Number"] = val;
-    fields["Proj #"] = val; 
-    fields["latest_speech_number"] = val;
-    fields["project_number"] = val;
-    fields["Project"] = val;
+    fields["Project Number"] = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
   }
   if (extraFields.Current_Pathway || extraFields.Pathway || extraFields.pathway) {
-    const val = extraFields.Current_Pathway || extraFields.Pathway || extraFields.pathway;
-    fields["Current Pathway"] = val;
-    fields["Pathway"] = val;
-    fields["pathway"] = val;
-    fields["current_pathway"] = val;
+    fields["Current Pathway"] = extraFields.Current_Pathway || extraFields.Pathway || extraFields.pathway;
   }
   if (extraFields.Current_Level || extraFields.Level || extraFields.level) {
-    const val = extraFields.Current_Level || extraFields.Level || extraFields.level;
-    fields["Current Level"] = val;
-    fields["Level"] = val;
-    fields["level"] = val;
-    fields["current_level"] = val;
+    fields["Current Level"] = extraFields.Current_Level || extraFields.Level || extraFields.level;
   }
-  if (extraFields.Intro_Duration) {
-    fields["Intro Duration"] = extraFields.Intro_Duration;
-    fields["intro_duration"] = extraFields.Intro_Duration;
-    fields["Intro"] = extraFields.Intro_Duration;
-  }
-  if (extraFields.Report_Duration) {
-    fields["Report Duration"] = extraFields.Report_Duration;
-    fields["report_duration"] = extraFields.Report_Duration;
-    fields["Report"] = extraFields.Report_Duration;
-  }
-  if (extraFields.Committee_Role) {
-    fields["Committee Role"] = extraFields.Committee_Role;
-    fields["Committee_Role"] = extraFields.Committee_Role;
-    fields["committee_role"] = extraFields.Committee_Role;
-  }
-  if (extraFields.Duration) {
-    fields["Dur"] = extraFields.Duration; 
-    fields["Duration"] = extraFields.Duration;
-    fields["duration"] = extraFields.Duration;
-  }
+  if (extraFields.Intro_Duration) fields["Intro Duration"] = extraFields.Intro_Duration;
+  if (extraFields.Report_Duration) fields["Report Duration"] = extraFields.Report_Duration;
+  if (extraFields.Committee_Role) fields["Committee Role"] = extraFields.Committee_Role;
+  if (extraFields.Duration) fields["Duration"] = extraFields.Duration;
+  if (extraFields.Profiles_Recd) fields["Profiles Rec'd"] = extraFields.Profiles_Recd;
+  if (extraFields.Confirmation_Msg) fields["Confirmation Msg"] = extraFields.Confirmation_Msg;
   
-  // NEW REQUESTED FIELDS
-  if (extraFields.Profiles_Recd) {
-    fields["Profiles Rec'd"] = extraFields.Profiles_Recd;
-    fields["profiles_recd"] = extraFields.Profiles_Recd;
-  }
-  if (extraFields.Confirmation_Msg) {
-    fields["Confirmation Msg"] = extraFields.Confirmation_Msg;
-    fields["confirmation_msg"] = extraFields.Confirmation_Msg;
-  }
+  // Direct field support
+  if (extraFields.Role) fields.Role = extraFields.Role;
+  if (extraFields.Theme) fields.Theme = extraFields.Theme;
+  if (extraFields.Word_of_the_Day) fields.Word_of_the_Day = extraFields.Word_of_the_Day;
+  if (extraFields.Word_Meaning) fields.Word_Meaning = extraFields.Word_Meaning;
+  if (extraFields.Word_Example) fields.Word_Example = extraFields.Word_Example;
+
 
   try {
     // Attempt bulk update format first
