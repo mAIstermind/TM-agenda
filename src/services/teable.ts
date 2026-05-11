@@ -64,7 +64,7 @@ export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
     if (!response || !response.ok) return getMockRoster();
     
     const data = await (response as Response).json();
-    return (data.records || []).map((record: any) => {
+    const records = (data.records || []).map((record: any) => {
       const f = record.fields || {};
       return {
         id: record.id,
@@ -87,6 +87,21 @@ export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
         example: f.Word_Example || f["Word Example"] || ''
       };
     });
+
+    // LLM Fix: Purge any localStorage keys for IDs no longer in the roster
+    // to prevent 404s when updating stale cached items.
+    const validIds = new Set(records.map((r: any) => r.id));
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('tm_intro_') || k.startsWith('tm_report_'))
+      .forEach(k => {
+        const id = k.replace('tm_intro_', '').replace('tm_report_', '');
+        if (!validIds.has(id)) {
+          console.log(`Purging stale cache for ID: ${id}`);
+          localStorage.removeItem(k);
+        }
+      });
+
+    return records;
   } catch (error) { 
     return getMockRoster(); 
   }
@@ -95,7 +110,7 @@ export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
 export async function addRosterRoles(roles: string[]): Promise<boolean> {
   try {
     const records = roles.map((role) => ({ fields: { Role: role, Status: 'Vacant' } }));
-    const response = await teableFetch(`/table/${TABLE_ID}/record`, 'POST', { records });
+    const response = await teableFetch(`/table/${TABLE_ID}/record`, 'POST', { records, typecast: true });
     return response.ok || response;
   } catch (error) { return false; }
 }
@@ -168,14 +183,16 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
     // Teable standard PATCH for multiple records (atomic)
     const response = await teableFetch(`/table/${targetTableId}/record`, 'PATCH', { 
       records: [{ id: recordId, fields }],
-      fieldKeyType: 'name' // Force display names
+      fieldKeyType: 'name', // Force display names
+      typecast: true // Auto-convert types
     });
     
     // If bulk update fails with 404, try individual record update
     if (!response.ok && response.status === 404) {
       const response2 = await teableFetch(`/table/${targetTableId}/record/${recordId}`, 'PATCH', { 
         fields,
-        fieldKeyType: 'name'
+        fieldKeyType: 'name',
+        typecast: true
       });
       return response2.ok || response2;
     }
@@ -224,7 +241,8 @@ export async function updateRoleTitle(recordId: string, newTitle: string): Promi
 export async function addMember(name: string, role: string = 'Member'): Promise<boolean> {
   try {
     const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record`, 'POST', {
-      records: [{ fields: { Name: name, Committee_Role: role, Status: 'Active' } }]
+      records: [{ fields: { Name: name, Committee_Role: role, Status: 'Active' } }],
+      typecast: true
     });
     return response.ok;
   } catch (error) { return false; }

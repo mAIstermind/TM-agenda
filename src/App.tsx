@@ -196,7 +196,36 @@ export default function App() {
     finally { setIsLoading(false); }
   };
 
-  const handleClaimRole = (id: string) => { setTargetId(id); setModalType('claim'); };
+  const handleClaimRole = async (id: string) => { 
+    await refreshData();
+    setTargetId(id); 
+    setModalType('claim'); 
+  };
+
+  const openEditRole = async (role: MeetingRole) => {
+    await refreshData();
+    const rName = role.role.toLowerCase();
+    const isEvaluator = rName.includes('evaluator') || rName.includes('grammarian') || rName.includes('timer') || rName.includes('ah-counter');
+    
+    // Intelligent Defaults
+    const defaultIntro = isEvaluator || rName.includes('president') || rName.includes('saa') ? '1' : '';
+    const defaultReport = rName.includes('general evaluator') ? '5' : 
+                           rName.includes('president') ? '5' :
+                           isEvaluator ? '2-3' : '';
+
+    setTargetId(role.id); 
+    setInputData({ 
+      title: role.role, 
+      duration: role.duration, 
+      intro_duration: role.intro_duration || localStorage.getItem(`tm_intro_${role.id}`) || defaultIntro, 
+      report_duration: role.report_duration || localStorage.getItem(`tm_report_${role.id}`) || defaultReport,
+      pathway: role.pathway,
+      level: role.level,
+      project_number: role.project_number,
+      speech_title: role.speech_title
+    }); 
+    setModalType('edit-role');
+  };
   
   const executeClaim = async (member: Member) => {
     if (!targetId) return;
@@ -370,29 +399,7 @@ export default function App() {
                     key={r.id} 
                     role={r} 
                     onClaim={handleClaimRole} 
-                    onEdit={(id) => { 
-                      const rName = r.role.toLowerCase();
-                      const isEvaluator = rName.includes('evaluator') || rName.includes('grammarian') || rName.includes('timer') || rName.includes('ah-counter');
-                      
-                      // Intelligent Defaults
-                      const defaultIntro = isEvaluator || rName.includes('president') || rName.includes('saa') ? '1' : '';
-                      const defaultReport = rName.includes('general evaluator') ? '5' : 
-                                             rName.includes('president') ? '5' :
-                                             isEvaluator ? '2-3' : '';
-
-                      setTargetId(id); 
-                      setInputData({ 
-                        title: r.role, 
-                        duration: r.duration, 
-                        intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${id}`) || defaultIntro, 
-                        report_duration: r.report_duration || localStorage.getItem(`tm_report_${id}`) || defaultReport,
-                        pathway: r.pathway,
-                        level: r.level,
-                        project_number: r.project_number,
-                        speech_title: r.speech_title
-                      }); 
-                      setModalType('edit-role'); 
-                    }} 
+                    onEdit={() => openEditRole(r)} 
                     onDelete={async (id) => { if(confirm("Remove?")) { const res = await deleteRosterRole(id); if(res === true) refreshData(); else alert(`⚠️ Delete failed: ${JSON.stringify((res as any)?.details || "Connection Error")}`); } }} 
                     onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
                    />
@@ -416,29 +423,7 @@ export default function App() {
                     key={r.id} 
                     role={r} 
                     onClaim={handleClaimRole} 
-                    onEdit={(id) => { 
-                      const rName = r.role.toLowerCase();
-                      const isEvaluator = rName.includes('evaluator') || rName.includes('grammarian') || rName.includes('timer') || rName.includes('ah-counter');
-                      
-                      // Intelligent Defaults
-                      const defaultIntro = isEvaluator || rName.includes('president') || rName.includes('saa') ? '1' : '';
-                      const defaultReport = rName.includes('general evaluator') ? '5' : 
-                                             rName.includes('president') ? '5' :
-                                             isEvaluator ? '2-3' : '';
-
-                      setTargetId(id); 
-                      setInputData({ 
-                        title: r.role, 
-                        duration: r.duration, 
-                        intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${id}`) || defaultIntro, 
-                        report_duration: r.report_duration || localStorage.getItem(`tm_report_${id}`) || defaultReport,
-                        pathway: r.pathway,
-                        level: r.level,
-                        project_number: r.project_number,
-                        speech_title: r.speech_title
-                      }); 
-                      setModalType('edit-role'); 
-                    }} 
+                    onEdit={() => openEditRole(r)} 
                     onDelete={async (id) => { if(confirm("Remove?")) { const res = await deleteRosterRole(id); if(res === true) refreshData(); else alert(`⚠️ Delete failed: ${JSON.stringify((res as any)?.details || "Connection Error")}`); } }} 
                     onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
                     showDuration 
@@ -459,7 +444,7 @@ export default function App() {
                         </div>
                       </div>
                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => { setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole, profiles_recd: m.profilesRecd, confirmation_msg: m.confirmationMsg }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><Edit2 className="w-4 h-4"/></button>
+                        <button onClick={async () => { await refreshData(); setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole, profiles_recd: m.profilesRecd, confirmation_msg: m.confirmationMsg }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><Edit2 className="w-4 h-4"/></button>
                         <button onClick={async () => { if(confirm(`Remove ${m.name}?`)) { const success = await deleteMember(m.id); if(success) refreshData(); else alert("Failed to delete."); } }} className="p-2 bg-white rounded-xl shadow-sm text-red-600"><Trash2 className="w-4 h-4"/></button>
                       </div>
                     </div>
