@@ -135,11 +135,21 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
   if (extraFields.Current_Level || extraFields.Level || extraFields.level) {
     fields["Current Level"] = extraFields.Current_Level || extraFields.Level || extraFields.level;
   }
-  if (extraFields.Intro_Duration) fields["Intro Duration"] = extraFields.Intro_Duration;
-  if (extraFields.Report_Duration) fields["Report Duration"] = extraFields.Report_Duration;
+  // Helper to convert to number if possible, or null if empty
+  const toNum = (val: any) => {
+    if (val === undefined || val === null || val === '') return null;
+    const n = Number(val);
+    return isNaN(n) ? val : n;
+  };
+
+  if (extraFields.Intro_Duration) fields["Intro Duration"] = toNum(extraFields.Intro_Duration);
+  if (extraFields.Report_Duration) fields["Report Duration"] = toNum(extraFields.Report_Duration);
   if (extraFields.Committee_Role) fields["Committee Role"] = extraFields.Committee_Role;
-  if (extraFields.Duration) fields["Duration"] = extraFields.Duration;
-  if (extraFields.Profiles_Recd) fields["Profiles Rec'd"] = extraFields.Profiles_Recd;
+  if (extraFields.Duration) fields.Duration = toNum(extraFields.Duration);
+  
+  // Profiles Rec'd removed as per user request to avoid 400 errors
+  // if (extraFields.Profiles_Recd) fields["Profiles Rec'd"] = extraFields.Profiles_Recd;
+  
   if (extraFields.Confirmation_Msg) fields["Confirmation Msg"] = extraFields.Confirmation_Msg;
   
   // Direct field support
@@ -148,6 +158,10 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
   if (extraFields.Word_of_the_Day) fields.Word_of_the_Day = extraFields.Word_of_the_Day;
   if (extraFields.Word_Meaning) fields.Word_Meaning = extraFields.Word_Meaning;
   if (extraFields.Word_Example) fields.Word_Example = extraFields.Word_Example;
+
+  // Additional speaker fields
+  if (fields["Project Number"]) fields["Project Number"] = toNum(fields["Project Number"]);
+  if (fields["Current Level"]) fields["Current Level"] = toNum(fields["Current Level"]);
 
 
   try {
@@ -218,7 +232,7 @@ export async function addMember(name: string, role: string = 'Member'): Promise<
 
 export async function deleteMember(memberId: string): Promise<boolean> {
   try {
-    const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record?recordIds[]=${memberId}`, 'DELETE');
+    const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record?recordIds=${memberId}`, 'DELETE');
     return response.ok;
   } catch (error) { return false; }
 }

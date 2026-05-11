@@ -393,7 +393,7 @@ export default function App() {
                       }); 
                       setModalType('edit-role'); 
                     }} 
-                    onDelete={async (id) => { if(confirm("Remove?")) { await deleteRosterRole(id); refreshData(); } }} 
+                    onDelete={async (id) => { if(confirm("Remove?")) { const ok = await deleteRosterRole(id); if(ok) refreshData(); else alert("⚠️ Delete failed — check your connection."); } }} 
                     onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
                    />
                  ))}
@@ -439,7 +439,7 @@ export default function App() {
                       }); 
                       setModalType('edit-role'); 
                     }} 
-                    onDelete={async (id) => { if(confirm("Remove?")) { await deleteRosterRole(id); refreshData(); } }} 
+                    onDelete={async (id) => { if(confirm("Remove?")) { const ok = await deleteRosterRole(id); if(ok) refreshData(); else alert("⚠️ Delete failed — check your connection."); } }} 
                     onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
                     showDuration 
                   />
@@ -659,11 +659,13 @@ export default function App() {
             }
 
             setIsLoading(true); 
-            const titleOk = await updateRoleTitle(targetId, inputData.title); 
-            const fieldsOk = await updateMeetingRole(targetId, undefined, extra); 
+            const ok = await updateMeetingRole(targetId, undefined, { 
+              ...extra, 
+              Role: inputData.title 
+            }); 
             setIsLoading(false);
             
-            if (!titleOk || !fieldsOk) {
+            if (!ok) {
               alert("⚠️ Save failed — check your connection and try again. Changes were NOT saved.");
               return; // Modal stays open
             }
