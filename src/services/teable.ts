@@ -96,7 +96,7 @@ export async function addRosterRoles(roles: string[]): Promise<boolean> {
   try {
     const records = roles.map((role) => ({ fields: { Role: role, Status: 'Vacant' } }));
     const response = await teableFetch(`/table/${TABLE_ID}/record`, 'POST', { records });
-    return response.ok;
+    return response.ok || response;
   } catch (error) { return false; }
 }
 
@@ -108,7 +108,7 @@ export async function deleteRosterRoles(recordIds: string[]): Promise<boolean> {
   try {
     const params = recordIds.map(id => `recordIds=${id}`).join('&');
     const response = await teableFetch(`/table/${TABLE_ID}/record?${params}`, 'DELETE');
-    return response.ok;
+    return response.ok || response;
   } catch (error) { return false; }
 }
 
@@ -177,10 +177,10 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
         fields,
         fieldKeyType: 'name'
       });
-      return response2.ok;
+      return response2.ok || response2;
     }
     
-    return response.ok;
+    return response.ok || response;
   } catch (error) { return false; }
 }
 

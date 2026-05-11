@@ -393,7 +393,7 @@ export default function App() {
                       }); 
                       setModalType('edit-role'); 
                     }} 
-                    onDelete={async (id) => { if(confirm("Remove?")) { const ok = await deleteRosterRole(id); if(ok) refreshData(); else alert("⚠️ Delete failed — check your connection."); } }} 
+                    onDelete={async (id) => { if(confirm("Remove?")) { const res = await deleteRosterRole(id); if(res === true) refreshData(); else alert(`⚠️ Delete failed: ${JSON.stringify((res as any)?.details || "Connection Error")}`); } }} 
                     onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
                    />
                  ))}
@@ -439,7 +439,7 @@ export default function App() {
                       }); 
                       setModalType('edit-role'); 
                     }} 
-                    onDelete={async (id) => { if(confirm("Remove?")) { const ok = await deleteRosterRole(id); if(ok) refreshData(); else alert("⚠️ Delete failed — check your connection."); } }} 
+                    onDelete={async (id) => { if(confirm("Remove?")) { const res = await deleteRosterRole(id); if(res === true) refreshData(); else alert(`⚠️ Delete failed: ${JSON.stringify((res as any)?.details || "Connection Error")}`); } }} 
                     onUnassign={async (id) => { await unassignRole(id); refreshData(); }} 
                     showDuration 
                   />
@@ -659,15 +659,16 @@ export default function App() {
             }
 
             setIsLoading(true); 
-            const ok = await updateMeetingRole(targetId, undefined, { 
+            const response = await updateMeetingRole(targetId, undefined, { 
               ...extra, 
               Role: inputData.title 
             }); 
             setIsLoading(false);
             
-            if (!ok) {
-              alert("⚠️ Save failed — check your connection and try again. Changes were NOT saved.");
-              return; // Modal stays open
+            if (response !== true) {
+              const details = (response as any)?.details ? JSON.stringify((response as any).details) : "Connection error";
+              alert(`⚠️ Save failed: ${details}`);
+              return; 
             }
             setModalType(null); 
             refreshData(); 
