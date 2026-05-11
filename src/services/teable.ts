@@ -9,24 +9,27 @@ const TABLE_ID = (import.meta as any).env.VITE_TEABLE_TABLE_ID;
 const MEMBERS_TABLE_ID = (import.meta as any).env.VITE_TEABLE_MEMBERS_TABLE_ID;
 
 async function teableFetch(path: string, method: string, body?: any): Promise<any> {
-  const rootUrls = [
-    '' // Strictly relative to use middleware tunneling
-  ];
-
-  for (const root of rootUrls) {
-    try {
-      const response = await fetch(`${root}/api/teable-proxy?cb=${Date.now()}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, method, body })
-      });
-      if (response.ok) return response;
-    } catch (err) {
-      // Continue to next root
+  try {
+    const response = await fetch(`/api/teable-proxy?cb=${Date.now()}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path, method, body })
+    });
+    
+    // Log the raw response status for debugging
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`Teable API Error [${path}]:`, response.status, errorData);
+      return { ok: false, status: response.status, data: errorData };
     }
+    
+    return response;
+  } catch (err: any) {
+    console.error(`Teable Connection Exception:`, err.message);
+    return { ok: false, status: 500 };
   }
-  return { ok: false, status: 500 };
 }
+
 
 export async function fetchMembers(): Promise<any[]> {
   try {
