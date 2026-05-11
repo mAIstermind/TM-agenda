@@ -5,8 +5,8 @@
 
 import { MeetingRole } from '../types';
 
-const TABLE_ID = (import.meta as any).env.VITE_TEABLE_TABLE_ID;
-const MEMBERS_TABLE_ID = (import.meta as any).env.VITE_TEABLE_MEMBERS_TABLE_ID;
+const TABLE_ID = (import.meta as any).env.VITE_TEABLE_TABLE_ID || "tblz1zqDdR3bI7D3dph";
+const MEMBERS_TABLE_ID = (import.meta as any).env.VITE_TEABLE_MEMBERS_TABLE_ID || "tbl1asPIen5amAQJaaq";
 
 async function teableFetch(path: string, method: string, body?: any): Promise<any> {
   try {
