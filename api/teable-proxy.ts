@@ -42,9 +42,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const data = await response.json();
+    
+    if (!response.ok) {
+      console.error(`Teable API Error (${response.status}):`, JSON.stringify(data));
+      // Return the full error object so the frontend can display/log it
+      return res.status(response.status).json({
+        error: 'Teable API Error',
+        details: data,
+        status: response.status
+      });
+    }
+
     return res.status(response.status).json(data);
   } catch (error: any) {
-    console.error('Proxy Error:', error);
+    console.error('Proxy Exception:', error);
     return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 }

@@ -148,14 +148,18 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
 
 
   try {
-    // Attempt bulk update format first
+    // Teable standard PATCH for multiple records (atomic)
     const response = await teableFetch(`/table/${targetTableId}/record`, 'PATCH', { 
-      records: [{ id: recordId, fields }] 
+      records: [{ id: recordId, fields }],
+      fieldKeyType: 'name' // Force display names
     });
     
     // If bulk update fails with 404, try individual record update
     if (!response.ok && response.status === 404) {
-      const response2 = await teableFetch(`/table/${targetTableId}/record/${recordId}`, 'PATCH', { fields });
+      const response2 = await teableFetch(`/table/${targetTableId}/record/${recordId}`, 'PATCH', { 
+        fields,
+        fieldKeyType: 'name'
+      });
       return response2.ok;
     }
     
