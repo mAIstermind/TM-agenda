@@ -119,7 +119,7 @@ export async function addRosterRole(role: string): Promise<boolean> {
 
 export async function deleteRosterRoles(recordIds: string[]): Promise<boolean> {
   try {
-    const params = recordIds.map(id => `recordIds=${id}`).join('&');
+    const params = recordIds.map(id => `recordIds[]=${id}`).join('&');
     const response = await teableFetch(`/table/${TABLE_ID}/record?${params}`, 'DELETE');
     return response.ok || response;
   } catch (error) { return false; }
@@ -244,7 +244,7 @@ export async function addMember(name: string, role: string = 'Member'): Promise<
 
 export async function deleteMember(memberId: string): Promise<boolean> {
   try {
-    const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record?recordIds=${memberId}`, 'DELETE');
+    const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record?recordIds[]=${memberId}`, 'DELETE');
     return response.ok;
   } catch (error) { return false; }
 }
