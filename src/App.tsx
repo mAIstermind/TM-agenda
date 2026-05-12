@@ -666,18 +666,12 @@ export default function App() {
           <input value={inputData.name || ''} onChange={e => setInputData({...inputData, name: e.target.value})} placeholder="Name" className="w-full bg-slate-50 rounded-2xl px-6 py-4 font-bold border-none focus:ring-2 focus:ring-blue-600"/>
           <input value={inputData.role || ''} onChange={e => setInputData({...inputData, role: e.target.value})} placeholder="Committee Role" className="w-full bg-slate-50 rounded-2xl px-6 py-4 font-bold border-none focus:ring-2 focus:ring-blue-600"/>
           
-          <div className="space-y-4 pt-4 border-t border-slate-100">
-            <input value={inputData.profiles_recd || ''} onChange={e => setInputData({...inputData, profiles_recd: e.target.value})} placeholder="Profiles Rec'd" className="w-full bg-slate-50 rounded-xl px-4 py-3 text-sm font-bold border-none"/>
-            <textarea value={inputData.confirmation_msg || ''} onChange={e => setInputData({...inputData, confirmation_msg: e.target.value})} placeholder="Confirmation Msg" className="w-full bg-slate-50 rounded-xl px-4 py-3 text-sm font-bold border-none" rows={2}/>
-          </div>
 
           <button onClick={async () => { 
             if(!targetId) return; 
             setIsLoading(true); 
             const ok = await updateMeetingRole(targetId, inputData.name, { 
-              Committee_Role: inputData.role,
-              Profiles_Recd: inputData.profiles_recd,
-              Confirmation_Msg: inputData.confirmation_msg
+              Committee_Role: inputData.role
             }, true); 
             setIsLoading(false);
             if (!ok) {

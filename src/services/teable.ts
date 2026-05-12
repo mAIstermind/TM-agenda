@@ -48,9 +48,7 @@ export async function fetchMembers(): Promise<any[]> {
         currentLevel: f.Level || f.level || f.Current_Level || f["Current Level"] || '',
         latestSpeechNumber: f.Project_Number || f["Project Number"] || f["Proj #"] || f.Latest_Speech_Number || '',
         latestSpeechTitle: f.Speech_Title || f["Speech Title"] || f.Title || f.latest_speech_title || f["Next Title"] || '',
-        latestSpeechDuration: f.Duration || f.duration || f.Dur || f.latest_speech_duration || '',
-        profilesRecd: f["Profiles Rec'd"] || f.profiles_recd || '',
-        confirmationMsg: f["Confirmation Msg"] || f.confirmation_msg || ''
+        latestSpeechDuration: f.Duration || f.duration || f.Dur || f.latest_speech_duration || ''
       };
     }).filter((m: any) => (m.name && m.name.trim() !== '') || (m.id)); 
   } catch (error) { 
@@ -162,10 +160,6 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
   if (extraFields.Committee_Role) fields["Committee Role"] = extraFields.Committee_Role;
   if (extraFields.Duration) fields.Duration = toNum(extraFields.Duration);
   
-  // Profiles Rec'd removed as per user request to avoid 400 errors
-  // if (extraFields.Profiles_Recd) fields["Profiles Rec'd"] = extraFields.Profiles_Recd;
-  
-  if (extraFields.Confirmation_Msg) fields["Confirmation Msg"] = extraFields.Confirmation_Msg;
   
   // Direct field support
   if (extraFields.Role) fields.Role = extraFields.Role;
