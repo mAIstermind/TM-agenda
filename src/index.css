@@ -70,18 +70,8 @@
   }
 
   /* Hide UI elements */
-  #root > *:not(main), 
   header:not(.agenda-header), nav, footer, .top-bar, .bottom-nav, button, .no-print, .lucide {
     display: none !important;
-  }
-
-  /* Target the main container specifically */
-  #root > main {
-    padding: 0 !important;
-    margin: 0 !important;
-    max-width: none !important;
-    display: block !important;
-    overflow: visible !important;
   }
   
   #root {
