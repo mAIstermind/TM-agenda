@@ -182,6 +182,13 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
               {details.announcements}
             </div>
           </div>
+
+          <div className="p-6 shrink-0 print:p-4 border-t border-white/10 mt-auto">
+            <h4 className="text-[8px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1">Toastmasters Core Values</h4>
+            <div className="w-full text-center font-black text-[9px] text-[#F2DF74] tracking-wide leading-tight">
+              Integrity, Respect, Service, and Excellence
+            </div>
+          </div>
         </aside>
 
         <main className="flex-1 p-5 print:p-2 bg-white agenda-main flex flex-col">
