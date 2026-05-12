@@ -69,7 +69,7 @@
 
   /* Hide UI elements */
   #root > *:not(main), 
-  header, nav, footer, .top-bar, .bottom-nav, button, .no-print, .lucide {
+  header:not(.agenda-header), nav, footer, .top-bar, .bottom-nav, button, .no-print, .lucide {
     display: none !important;
   }
 
@@ -78,6 +78,13 @@
     padding: 0 !important;
     margin: 0 !important;
     max-width: none !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+  
+  #root {
+    display: block !important;
+    overflow: visible !important;
   }
 
   /* Force the agenda to fill the page */

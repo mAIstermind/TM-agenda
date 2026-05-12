@@ -488,7 +488,7 @@ export default function App() {
 
           {activeTab === 'agenda' && (
             <motion.div key="agenda" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col lg:flex-row gap-8 items-start relative">
-              <div className="flex-1 w-full bg-white p-6 md:p-10 rounded-[3rem] shadow-2xl border border-slate-100 overflow-x-auto">
+              <div className="flex-1 w-full bg-white p-6 md:p-10 rounded-[3rem] shadow-2xl border border-slate-100 overflow-x-auto print:overflow-visible print:p-0 print:border-none print:shadow-none print:bg-transparent">
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-10 no-print">
                    <div className="flex gap-3">
                      <button onClick={() => window.print()} className="px-6 md:px-8 py-3 bg-[#004165] text-white rounded-2xl font-black flex items-center gap-2 shadow-lg"><Printer className="w-4 h-4"/> Print A4</button>
