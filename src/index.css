@@ -86,14 +86,15 @@
     left: 0 !important;
     width: 210mm !important;
     min-height: 297mm !important;
-    height: 297mm !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     z-index: 999999 !important;
     background: white !important;
     box-shadow: none !important;
     border: none !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+    zoom: 0.85 !important;
   }
 
   /* Eliminate faint greys - FORCE DEEP BLACK */
