@@ -175,6 +175,13 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
               </div>
             </div>
           </div>
+
+          <div className="bg-black/40 p-6 space-y-3 shrink-0 mt-auto flex-1">
+            <h4 className="text-[9px] uppercase tracking-[0.3em] font-black text-[#F2DF74] text-center">Announcements</h4>
+            <div className="w-full text-center font-bold text-[10px] italic text-slate-200 whitespace-pre-wrap break-words leading-tight">
+              {details.announcements}
+            </div>
+          </div>
         </aside>
 
         <main className="flex-1 p-5 bg-white agenda-main flex flex-col">
@@ -227,14 +234,6 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
               })}
             </tbody>
           </table>
-          <footer className="p-4 border-t border-gray-100 mt-auto shrink-0 print:border-t-2 print:border-slate-100">
-            <div className="text-center max-w-xl mx-auto">
-              <h4 className="text-[9px] uppercase tracking-[0.4em] font-black text-gray-500 mb-2 print:text-black">Announcements</h4>
-              <p className="w-full text-center font-bold text-xs italic whitespace-pre-wrap print:text-black">
-                {details.announcements}
-              </p>
-            </div>
-          </footer>
         </main>
       </div>
     </div>
