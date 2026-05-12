@@ -55,6 +55,8 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     box-sizing: border-box !important;
+    transform: none !important;
+    will-change: auto !important;
   }
 
   body, html {
@@ -74,7 +76,7 @@
   }
 
   /* Target the main container specifically */
-  #root main {
+  #root > main {
     padding: 0 !important;
     margin: 0 !important;
     max-width: none !important;

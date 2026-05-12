@@ -500,7 +500,7 @@ export default function App() {
                    </div>
                 </div>
                 {agenda && (
-                  <div className="min-w-fit">
+                  <div className="min-w-fit print:min-w-0 print:w-full">
                     <StitchAgenda 
                       segments={agenda} 
                       details={{ theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements }} 
