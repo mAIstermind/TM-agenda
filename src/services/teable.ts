@@ -135,19 +135,6 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
   if (name !== undefined) fields.Name = name;
   if (!isMember && name !== undefined) fields.Status = name.trim() ? 'Confirmed' : 'Vacant';
 
-  // Map to the most likely Teable field names (Spaced)
-  if (extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title) {
-    fields["Speech Title"] = extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title;
-  }
-  if (extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number) {
-    fields["Project Number"] = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
-  }
-  if (extraFields.Current_Pathway || extraFields.Pathway || extraFields.pathway) {
-    fields["Current Pathway"] = extraFields.Current_Pathway || extraFields.Pathway || extraFields.pathway;
-  }
-  if (extraFields.Current_Level || extraFields.Level || extraFields.level) {
-    fields["Current Level"] = extraFields.Current_Level || extraFields.Level || extraFields.level;
-  }
   // Helper to convert to number if possible, or null if empty
   const toNum = (val: any) => {
     if (val === undefined || val === null || val === '') return null;
@@ -155,22 +142,32 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
     return isNaN(n) ? val : n;
   };
 
-  if (extraFields.Intro_Duration) fields["Intro Duration"] = toNum(extraFields.Intro_Duration);
-  if (extraFields.Report_Duration) fields["Report Duration"] = toNum(extraFields.Report_Duration);
-  if (extraFields.Committee_Role) fields["Committee Role"] = extraFields.Committee_Role;
-  if (extraFields.Duration) fields.Duration = toNum(extraFields.Duration);
-  
-  
-  // Direct field support
-  if (extraFields.Role) fields.Role = extraFields.Role;
-  if (extraFields.Theme) fields.Theme = extraFields.Theme;
-  if (extraFields.Word_of_the_Day) fields.Word_of_the_Day = extraFields.Word_of_the_Day;
-  if (extraFields.Word_Meaning) fields.Word_Meaning = extraFields.Word_Meaning;
-  if (extraFields.Word_Example) fields.Word_Example = extraFields.Word_Example;
-
-  // Additional speaker fields
-  if (fields["Project Number"]) fields["Project Number"] = toNum(fields["Project Number"]);
-  if (fields["Current Level"]) fields["Current Level"] = toNum(fields["Current Level"]);
+  if (isMember) {
+    // Members Table Schema: ["Name", "Committee Role", "Status", "Pathway", "Level"]
+    if (extraFields.Committee_Role || extraFields.role || extraFields.Role) {
+      fields["Committee Role"] = extraFields.Committee_Role || extraFields.role || extraFields.Role;
+    }
+    const p = extraFields.Pathway || extraFields.pathway || extraFields.Current_Pathway;
+    if (p !== undefined) fields.Pathway = p;
+    
+    const l = extraFields.Level || extraFields.level || extraFields.Current_Level;
+    if (l !== undefined) fields.Level = toNum(l);
+  } else {
+    // Roster Table Schema: ["Role", "Name", "Status", "Speech Title", "Pathway", "Level", "Project Number"]
+    if (extraFields.Role) fields.Role = extraFields.Role;
+    
+    const st = extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title;
+    if (st !== undefined) fields["Speech Title"] = st;
+    
+    const p = extraFields.Pathway || extraFields.pathway || extraFields.Current_Pathway;
+    if (p !== undefined) fields.Pathway = p;
+    
+    const l = extraFields.Level || extraFields.level || extraFields.Current_Level;
+    if (l !== undefined) fields.Level = toNum(l);
+    
+    const pn = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
+    if (pn !== undefined) fields["Project Number"] = toNum(pn);
+  }
 
 
   try {
@@ -235,7 +232,7 @@ export async function updateRoleTitle(recordId: string, newTitle: string): Promi
 export async function addMember(name: string, role: string = 'Member'): Promise<boolean> {
   try {
     const response = await teableFetch(`/table/${MEMBERS_TABLE_ID}/record`, 'POST', {
-      records: [{ fields: { Name: name, Committee_Role: role, Status: 'Active' } }],
+      records: [{ fields: { Name: name, "Committee Role": role, Status: 'Active' } }],
       typecast: true
     });
     return response.ok;
