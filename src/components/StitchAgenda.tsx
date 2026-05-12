@@ -30,14 +30,25 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
     'Sergeant at Arms'
   ];
   
-  const officers = roles.map(role => ({
-    role,
-    name: members.find(m => (m.committeeRole || '').toLowerCase().includes(role.toLowerCase()))?.name || '---'
-  }));
+  const officers = roles.map(role => {
+    let match: any;
+    if (role === 'Sergeant at Arms') {
+      match = members.find(m => {
+        const cRole = (m.committeeRole || '').toLowerCase();
+        return cRole.includes('sergeant at arms') || cRole === 'saa';
+      });
+    } else {
+      match = members.find(m => (m.committeeRole || '').toLowerCase().includes(role.toLowerCase()));
+    }
+    return {
+      role,
+      name: match?.name || '---'
+    };
+  });
 
   return (
-    <div className="bg-white shadow-2xl border border-gray-200 overflow-hidden font-['Montserrat',sans-serif] mx-auto print:shadow-none print:border-none print:m-0 print:w-[210mm] print:h-[297mm] printable-area" 
-         style={{ width: '210mm', height: '297mm', padding: '0', display: 'flex', flexDirection: 'column' }} id="agenda-page">
+    <div className="bg-white shadow-2xl border border-gray-200 font-['Montserrat',sans-serif] mx-auto print:shadow-none print:border-none print:m-0 print:w-[210mm] printable-area" 
+         style={{ width: '210mm', minHeight: '297mm', height: 'auto', padding: '0', display: 'flex', flexDirection: 'column' }} id="agenda-page">
       <header className="bg-[#004165] text-white p-5 print:bg-[#004165] print:text-white relative shrink-0">
         <div className="flex justify-between items-center gap-8">
           <div className="flex items-center gap-6 shrink-0">
@@ -53,37 +64,51 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
             <div className="flex justify-end gap-x-2 mt-1 text-xs font-medium">
               <span className="opacity-60 text-[9px] font-black uppercase tracking-widest shrink-0">Theme:</span>
               <input 
-                className="bg-transparent border-none text-tm-gold font-bold w-full text-right focus:outline-none p-0 italic text-xs" 
+                className="bg-transparent border-none text-tm-gold font-bold w-full text-right focus:outline-none p-0 italic text-xs print:hidden" 
                 value={details.theme}
                 onChange={(e) => onEditDetail?.('theme', e.target.value)}
                 style={{ color: '#F2DF74' }}
               />
+              <div className="hidden print:block text-[#F2DF74] font-bold italic text-xs text-right break-words">
+                {details.theme}
+              </div>
             </div>
           </div>
         </div>
         <div className="mt-4 py-1 bg-white/10 border-t border-b border-white/10 text-center">
           <span className="text-[10px] uppercase tracking-widest font-black opacity-90">Session: </span>
           <input 
-            className="bg-transparent border-none text-white font-black w-12 text-center focus:outline-none p-0" 
+            className="bg-transparent border-none text-white font-black w-12 text-center focus:outline-none p-0 print:hidden" 
             value={details.sessionNum}
             onChange={(e) => onEditDetail?.('sessionNum', e.target.value)}
           />
+          <div className="hidden print:inline-block text-white font-black w-12 text-center">
+            {details.sessionNum}
+          </div>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1">
         <aside className="agenda-sidebar w-[180px] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
-          <div className="p-6 space-y-6 flex-1">
+          <div className="p-6 space-y-6">
             <div className="text-center mb-6 pb-4 border-b border-white/10">
               <p className="text-[9px] uppercase tracking-widest opacity-60 mb-1">Meeting Date</p>
-              <div className="font-black text-xs text-white">
+              <input 
+                type="date"
+                className="font-black text-xs text-white bg-transparent border-none focus:outline-none w-full text-center print:hidden cursor-pointer"
+                value={details.date ? details.date.split('T')[0] : ''}
+                onChange={(e) => onEditDetail?.('date', e.target.value)}
+                style={{ colorScheme: 'dark' }}
+              />
+              <div className="hidden print:block font-black text-xs text-white">
                 {(() => {
-                  // FIX: Parse date without timezone shift
-                  const parts = details.date.split('-');
-                  if (parts.length !== 3) return details.date;
+                  const val = details.date ? details.date.split('T')[0] : '';
+                  if (!val) return 'TBD';
+                  const parts = val.split('-');
+                  if (parts.length !== 3) return val;
                   const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
                   
-                  if (isNaN(d.getTime())) return details.date;
+                  if (isNaN(d.getTime())) return val;
                   const day = d.getDate();
                   const suffix = ["th", "st", "nd", "rd"][(day % 10 > 3 || Math.floor(day % 100 / 10) === 1) ? 0 : day % 10];
                   return `${day}${suffix} ${d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
@@ -106,40 +131,53 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
             </div>
           </div>
 
-          <div className="bg-black/20 p-6 space-y-4">
+          <div className="bg-black/20 p-6 space-y-4 flex-1">
             <h3 className="italic text-lg font-black text-[#F2DF74]">Word of the Day</h3>
             <div className="space-y-4">
               <div>
                 <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Word:</p>
                 <input 
-                  className="font-black text-xs bg-white/10 rounded px-2 py-1 w-full text-white border-none focus:ring-0" 
+                  className="font-black text-xs bg-white/10 rounded px-2 py-1 w-full text-white border-none focus:ring-0 print:hidden" 
                   value={wotd.word}
                   onChange={(e) => onEditDetail?.('word', e.target.value)}
                 />
+                <div className="hidden print:block font-black text-xs text-white break-words">
+                  {wotd.word}
+                </div>
               </div>
               <div className="space-y-1">
                 <p className="text-[8px] uppercase tracking-widest opacity-50">Definition:</p>
                 <textarea 
-                  className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none" 
-                  rows={4} 
+                  className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none print:hidden overflow-hidden" 
+                  rows={2} 
                   value={wotd.meaning}
                   onChange={(e) => onEditDetail?.('meaning', e.target.value)}
+                  onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                  style={{ minHeight: '60px' }}
                 />
+                <div className="hidden print:block text-[10px] italic font-medium leading-snug text-white whitespace-pre-wrap break-words">
+                  {wotd.meaning}
+                </div>
               </div>
               <div className="space-y-1">
                 <p className="text-[8px] uppercase tracking-widest opacity-50">Example:</p>
                 <textarea 
-                  className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none" 
-                  rows={4} 
+                  className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none print:hidden overflow-hidden" 
+                  rows={2} 
                   value={wotd.example}
                   onChange={(e) => onEditDetail?.('example', e.target.value)}
+                  onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                  style={{ minHeight: '60px' }}
                 />
+                <div className="hidden print:block text-[10px] italic font-medium leading-snug text-white whitespace-pre-wrap break-words">
+                  {wotd.example}
+                </div>
               </div>
             </div>
           </div>
         </aside>
 
-        <main className="flex-1 p-5 bg-white agenda-main flex flex-col overflow-hidden">
+        <main className="flex-1 p-5 bg-white agenda-main flex flex-col">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-gray-100">
@@ -150,31 +188,43 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
               </tr>
             </thead>
             <tbody>
-              {segments.map((seg, idx) => (
-                <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-b border-gray-100 group print:bg-transparent`}>
-                  <td className="text-left font-black text-[#004165] py-3 text-xs">
-                    <span className="block w-full">{seg.time}</span>
-                  </td>
-                  <td className="text-center py-2">
-                    <span className="block w-full text-gray-400 font-bold text-[10px]">{seg.duration}</span>
-                  </td>
-                  <td className="px-3 py-2 overflow-hidden">
-                    <div className="font-black text-[#004165] uppercase tracking-tight leading-tight whitespace-normal break-words">
-                      {seg.segment}
-                    </div>
-                    {seg.details && (
-                      <div className="text-[9px] text-gray-500 font-medium leading-tight whitespace-normal break-words mt-0.5">
-                        {seg.details}
+              {segments.map((seg, idx) => {
+                const isSpeaker = seg.segment.toLowerCase().startsWith('speaker #');
+                return (
+                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-b border-gray-100 group print:bg-transparent`}>
+                    <td className="text-left font-black text-[#004165] py-3 text-xs w-20">
+                      {isSpeaker && <span className="block text-[8px] uppercase tracking-widest text-slate-400 mb-0.5">{seg.segment}</span>}
+                      <span className="block w-full">{seg.time}</span>
+                    </td>
+                    <td className="text-center py-2 w-16">
+                      <span className="block w-full text-gray-400 font-bold text-[10px]">{seg.duration}</span>
+                    </td>
+                    <td className="px-3 py-2 overflow-hidden">
+                      {isSpeaker ? (
+                        <div className="font-black text-[#004165] text-xs leading-tight whitespace-pre-wrap break-words print:text-black">
+                          {seg.details}
+                        </div>
+                      ) : (
+                        <>
+                          <div className="font-black text-[#004165] uppercase tracking-tight leading-tight whitespace-normal break-words">
+                            {seg.segment}
+                          </div>
+                          {seg.details && (
+                            <div className="text-[9px] text-gray-500 font-medium leading-tight whitespace-pre-wrap break-words mt-0.5 print:text-black">
+                              {seg.details}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 overflow-hidden">
+                      <div className="font-black text-[#772432] leading-tight whitespace-normal break-words">
+                        {seg.assignedTo === 'N/A' || seg.assignedTo === 'n/a' ? '' : seg.assignedTo}
                       </div>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 overflow-hidden">
-                    <div className="font-black text-[#772432] leading-tight whitespace-normal break-words">
-                      {seg.assignedTo === 'N/A' || seg.assignedTo === 'n/a' ? '' : seg.assignedTo}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           <footer className="p-4 border-t border-gray-100 mt-auto shrink-0 print:border-t-2 print:border-slate-100">

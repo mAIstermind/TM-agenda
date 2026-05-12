@@ -67,7 +67,6 @@ Do NOT copy phrases like "DISPLAY DETAILS" or "[Pathway Name]" into the output.
 15. Toastmaster introduces speaker #1
 16. Speaker #1: Use the Speaker Details Template below.
 17. [Repeat for Speaker #2 and #3 if they exist]
-23. [IF A ROLE CONTAINING 'VOTING' EXISTS] Special Voting Session (15 min)
 24. GE invites Evaluators to share reports (1 min)
 25. 1st Speech Evaluator report (2-3 min)
 26. 2nd Speech Evaluator report (2-3 min)
@@ -106,10 +105,13 @@ Title: [Data or TBD]"
 
 **ROSTER DATA:**
 ${confirmed.map(r => {
-  const pathway = r.pathway?.trim() || "---";
-  const project = r.level?.trim() ? `Level ${r.level}, ${r.project_number || 'Proj'}` : "---";
-  const title = r.speech_title?.trim() || "---";
-  const duration = r.duration?.trim() || "5-7";
+  const safeStr = (v: any) => (v !== undefined && v !== null ? String(v).trim() : "");
+  const pathway = safeStr(r.pathway) || "---";
+  const lvlStr = safeStr(r.level);
+  const project = lvlStr ? `Level ${lvlStr}, ${safeStr(r.project_number) || 'Proj'}` : "---";
+  const title = safeStr(r.speech_title) || "---";
+  const durVal = safeStr(r.duration) || "5-7";
+  const duration = durVal.includes('min') ? durVal : `${durVal} min`;
   return `- ${r.role}: ${r.name} | PW: ${pathway} | LVL: ${project} | TITLE: ${title} | DUR: ${duration}`;
 }).join('\n')}
 

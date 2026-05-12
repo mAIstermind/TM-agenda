@@ -37,7 +37,8 @@ import {
   addMember,
   deleteMember,
   updateMeetingRole,
-  updateRoleTitle
+  updateRoleTitle,
+  updateMeetingDetails
 } from './services/teable';
 import { generateMeetingAgenda, editAgendaWithAI, AgendaSegment } from './services/gemini';
 import { MeetingRole, Member } from './types';
@@ -176,16 +177,36 @@ export default function App() {
     try {
       const [rosterData, membersData] = await Promise.all([ fetchMeetingRoster(), fetchMembers() ]);
       
-      // HYDRATE ROSTER WITH LOCAL CACHE FOR TIMES
-      const hydratedRoster = (rosterData || []).map(r => ({
-        ...r,
-        intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${r.id}`) || '',
-        report_duration: r.report_duration || localStorage.getItem(`tm_report_${r.id}`) || ''
-      }));
+      const membersList = [...(membersData || [])].sort((a, b) => a.name.localeCompare(b.name));
+
+      // HYDRATE ROSTER WITH LOCAL CACHE FOR TIMES AND EXACT NAMES
+      const hydratedRoster = (rosterData || []).map(r => {
+        const memberMatch = membersList.find(m => m.name.toLowerCase() === (r.name || '').toLowerCase());
+        return {
+          ...r,
+          name: memberMatch ? memberMatch.name : r.name,
+          intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${r.id}`) || '',
+          report_duration: r.report_duration || localStorage.getItem(`tm_report_${r.id}`) || ''
+        };
+      });
       
       setRoster(hydratedRoster);
-      setMembers([...(membersData || [])].sort((a, b) => a.name.localeCompare(b.name)));
+      setMembers(membersList);
       
+      const tmod = hydratedRoster.find(r => r.role.toLowerCase().includes('toastmaster'));
+      if (tmod) {
+        if (tmod.theme) setTheme(tmod.theme);
+        if (tmod.date) setMeetingDate(tmod.date);
+        if (tmod.sessionNum) setSessionNum(tmod.sessionNum);
+        if (tmod.announcements) setAnnouncements(tmod.announcements);
+      }
+      const gram = hydratedRoster.find(r => r.role.toLowerCase().includes('grammarian'));
+      if (gram) {
+        if (gram.wotd) setWordOfTheDay(gram.wotd);
+        if (gram.meaning) setWordMeaning(gram.meaning);
+        if (gram.example) setWordExample(gram.example);
+      }
+
       const savedUserId = localStorage.getItem('tm_user_id');
       if (savedUserId && membersData?.length > 0) {
         const user = membersData.find((m: Member) => m.id === savedUserId);
@@ -270,6 +291,16 @@ export default function App() {
   const handleGenerateAgenda = async () => {
     setIsGenerating(true);
     try {
+      localStorage.setItem('tm_theme', theme);
+      localStorage.setItem('tm_date', meetingDate);
+      localStorage.setItem('tm_session_num', sessionNum);
+      localStorage.setItem('tm_announcements', announcements);
+      localStorage.setItem('tm_wotd', wordOfTheDay);
+      localStorage.setItem('tm_meaning', wordMeaning);
+      localStorage.setItem('tm_example', wordExample);
+
+      await updateMeetingDetails(roster, { theme, date: meetingDate, sessionNum, announcements, word: wordOfTheDay, meaning: wordMeaning, example: wordExample });
+      
       // Merge member profile data into the roster for better speaker details
       const enrichedRoster = roster.map(r => {
         if (!r.name || r.status !== 'Confirmed') return r;
@@ -280,6 +311,7 @@ export default function App() {
           ...r,
           pathway: r.pathway || member.currentPathway || '',
           level: r.level || member.currentLevel || '',
+          project_number: r.project_number || member.latestSpeechNumber || '',
           speech_title: r.speech_title || member.latestSpeechTitle || ''
         };
       });
@@ -521,15 +553,31 @@ export default function App() {
                          <input value={currentUser.currentPathway || ''} onChange={e => setCurrentUser({...currentUser, currentPathway: e.target.value})} placeholder="Pathway" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
                          <input value={currentUser.currentLevel || ''} onChange={e => setCurrentUser({...currentUser, currentLevel: e.target.value})} placeholder="Level" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
                        </div>
-                       <input value={currentUser.latestSpeechTitle || ''} onChange={e => setCurrentUser({...currentUser, latestSpeechTitle: e.target.value})} placeholder="Next Title" className="w-full bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
+                       <div className="flex gap-4">
+                         <input value={currentUser.latestSpeechNumber || ''} onChange={e => setCurrentUser({...currentUser, latestSpeechNumber: e.target.value})} placeholder="Speech #" className="w-24 bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
+                         <input value={currentUser.latestSpeechTitle || ''} onChange={e => setCurrentUser({...currentUser, latestSpeechTitle: e.target.value})} placeholder="Next Title" className="flex-1 bg-slate-50 rounded-xl px-4 py-3 font-bold border-none"/>
+                       </div>
                        
                        <button onClick={async () => { 
                          setIsLoading(true);
-                         const ok = await updateMeetingRole(currentUser.id, currentUser.name, { 
+                         const ok = await updateMeetingRole(currentUser.id, undefined, { 
                            Pathway: currentUser.currentPathway,
                            Level: currentUser.currentLevel,
+                           Project_Number: currentUser.latestSpeechNumber,
                            Speech_Title: currentUser.latestSpeechTitle
                          }, true); 
+
+                         // Sync to Roster Roles if assigned
+                         const mySpeakerRoles = roster.filter(r => r.name === currentUser.name && r.role.toLowerCase().includes('speaker'));
+                         for (const role of mySpeakerRoles) {
+                           await updateMeetingRole(role.id, undefined, {
+                             Pathway: currentUser.currentPathway,
+                             Level: currentUser.currentLevel,
+                             Project_Number: currentUser.latestSpeechNumber,
+                             Speech_Title: currentUser.latestSpeechTitle
+                           });
+                         }
+
                          setIsLoading(false);
                          if (ok) {
                            alert("✅ Profile saved!");
@@ -648,6 +696,21 @@ export default function App() {
               ...extra, 
               Role: inputData.title 
             }); 
+
+            // Sync back to Profile
+            const currentRole = roster.find(r => r.id === targetId);
+            if (response === true && currentRole && currentRole.name && inputData.title?.toLowerCase().includes('speaker')) {
+               const assignedMember = members.find(m => m.name === currentRole.name);
+               if (assignedMember) {
+                 await updateMeetingRole(assignedMember.id, undefined, {
+                   Pathway: inputData.pathway,
+                   Level: inputData.level,
+                   Project_Number: inputData.project_number,
+                   Speech_Title: inputData.speech_title
+                 }, true);
+               }
+            }
+
             setIsLoading(false);
             
             if (response !== true) {

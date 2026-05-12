@@ -71,6 +71,30 @@ export default defineConfig(({mode}) => {
               next();
             }
           });
+
+          server.middlewares.use('/api/ai-proxy', (req, res, next) => {
+            if (req.method === 'POST') {
+              let body = '';
+              req.on('data', chunk => { body += chunk; });
+              req.on('end', async () => {
+                try {
+                  const response = await fetch('https://agenda.inspiringspeakerspdc.com/api/ai-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body
+                  });
+                  const data = await response.text();
+                  res.writeHead(response.status, { 'Content-Type': 'application/json' });
+                  res.end(data);
+                } catch (err: any) {
+                  res.writeHead(500, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: err.message }));
+                }
+              });
+            } else {
+              next();
+            }
+          });
         }
       }
     ],

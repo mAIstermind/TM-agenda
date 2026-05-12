@@ -50,7 +50,7 @@ export async function fetchMembers(): Promise<any[]> {
         latestSpeechTitle: f.Speech_Title || f["Speech Title"] || f.Title || f.latest_speech_title || f["Next Title"] || '',
         latestSpeechDuration: f.Duration || f.duration || f.Dur || f.latest_speech_duration || ''
       };
-    }).filter((m: any) => (m.name && m.name.trim() !== '') || (m.id)); 
+    }).filter((m: any) => (m.name && String(m.name).trim() !== '') || (m.id)); 
   } catch (error) { 
     return []; 
   }
@@ -69,7 +69,7 @@ export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
         role: f.Role || f.role || 'Unassigned Role',
         name: f.Name || f.name || f["Full Name"] || '',
         status: f.Status || f.status || 'Vacant',
-        date: f.Date || new Date().toISOString(),
+        date: f.Date || '',
         duration: f.Duration || f.duration || f.Dur || '',
         // Aggressive mapping for Speaker Intros
         intro_duration: f.Intro_Duration || f["Intro Duration"] || f.Intro || '',
@@ -82,7 +82,9 @@ export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
         theme: f.Theme || f.theme || '',
         wotd: f.Word_of_the_Day || f["Word of the Day"] || '',
         meaning: f.Word_Meaning || f["Word Meaning"] || '',
-        example: f.Word_Example || f["Word Example"] || ''
+        example: f.Word_Example || f["Word Example"] || '',
+        sessionNum: f.Session || f.session || f.SessionNum || '',
+        announcements: f.Announcements || f.announcements || ''
       };
     });
 
@@ -133,7 +135,7 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
   const targetTableId = isMember ? MEMBERS_TABLE_ID : TABLE_ID;
   const fields: any = {};
   if (name !== undefined) fields.Name = name;
-  if (!isMember && name !== undefined) fields.Status = name.trim() ? 'Confirmed' : 'Vacant';
+  if (!isMember && name !== undefined) fields.Status = String(name).trim() ? 'Confirmed' : 'Vacant';
 
   // Helper to convert to number if possible, or null if empty
   const toNum = (val: any) => {
@@ -152,8 +154,14 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
     
     const l = extraFields.Level || extraFields.level || extraFields.Current_Level;
     if (l !== undefined) fields.Level = toNum(l);
+
+    const st = extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title;
+    if (st !== undefined) fields["Speech Title"] = st;
+    
+    const pn = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
+    if (pn !== undefined) fields["Project Number"] = toNum(pn);
   } else {
-    // Roster Table Schema: ["Role", "Name", "Status", "Speech Title", "Pathway", "Level", "Project Number"]
+    // Roster Table Schema: ["Role", "Name", "Status", "Speech Title", "Pathway", "Level", "Project Number", "Theme", "Word of the Day", etc]
     if (extraFields.Role) fields.Role = extraFields.Role;
     
     const st = extraFields.Speech_Title || extraFields.latestSpeechTitle || extraFields.speech_title;
@@ -167,6 +175,27 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
     
     const pn = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
     if (pn !== undefined) fields["Project Number"] = toNum(pn);
+
+    const theme = extraFields.Theme || extraFields.theme;
+    if (theme !== undefined) fields.Theme = theme;
+    
+    const wotd = extraFields.Word_of_the_Day || extraFields.wotd;
+    if (wotd !== undefined) fields["Word of the Day"] = wotd;
+    
+    const meaning = extraFields.Word_Meaning || extraFields.meaning;
+    if (meaning !== undefined) fields["Word Meaning"] = meaning;
+    
+    const example = extraFields.Word_Example || extraFields.example;
+    if (example !== undefined) fields["Word Example"] = example;
+
+    const date = extraFields.Date || extraFields.date;
+    if (date !== undefined) fields.Date = date;
+
+    const session = extraFields.Session || extraFields.session || extraFields.sessionNum;
+    if (session !== undefined) fields.Session = session;
+
+    const announcements = extraFields.Announcements || extraFields.announcements;
+    if (announcements !== undefined) fields.Announcements = announcements;
   }
 
 
@@ -212,10 +241,15 @@ export async function updateMeetingDetails(roster: MeetingRole[], details: any):
   const tmod = roster.find(r => r.role.toLowerCase().includes('toastmaster'));
   const gram = roster.find(r => r.role.toLowerCase().includes('grammarian'));
   let success = true;
-  if (tmod && details.theme) {
-    if (!await updateMeetingRole(tmod.id, tmod.name, { Theme: details.theme })) success = false;
+  if (tmod) {
+    if (!await updateMeetingRole(tmod.id, tmod.name, { 
+      Theme: details.theme,
+      Date: details.date,
+      Session: details.sessionNum,
+      Announcements: details.announcements
+    })) success = false;
   }
-  if (gram && (details.word || details.meaning || details.example)) {
+  if (gram) {
     if (!await updateMeetingRole(gram.id, gram.name, {
       Word_of_the_Day: details.word,
       Word_Meaning: details.meaning,
