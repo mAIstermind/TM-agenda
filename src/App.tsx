@@ -394,7 +394,7 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {roster.slice(0, 9).map(r => (
+                 {roster.map(r => (
                    <RoleCard 
                     key={r.id} 
                     role={r} 
@@ -444,7 +444,7 @@ export default function App() {
                         </div>
                       </div>
                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={async () => { await refreshData(); setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole, profiles_recd: m.profilesRecd, confirmation_msg: m.confirmationMsg }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><Edit2 className="w-4 h-4"/></button>
+                        <button onClick={async () => { await refreshData(); setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><Edit2 className="w-4 h-4"/></button>
                         <button onClick={async () => { if(confirm(`Remove ${m.name}?`)) { const success = await deleteMember(m.id); if(success) refreshData(); else alert("Failed to delete."); } }} className="p-2 bg-white rounded-xl shadow-sm text-red-600"><Trash2 className="w-4 h-4"/></button>
                       </div>
                     </div>

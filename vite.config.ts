@@ -22,7 +22,7 @@ export default defineConfig(({mode}) => {
         // This is a dummy proxy config to allow us to use the 'configure' hook
         // to implement the actual Silent Tunnel logic locally.
         '/api/teable-proxy': {
-          target: 'https://api.teable.io',
+          target: 'https://app.teable.ai',
           changeOrigin: true,
           bypass: async (req, res) => {
             if (req.method === 'POST') {
@@ -32,38 +32,50 @@ export default defineConfig(({mode}) => {
                 try {
                   const { path: teablePath, method, body: teableBody } = JSON.parse(body || '{}');
                   
-                  const tryRequest = async (baseUrl: string) => {
-                    const targetUrl = `${baseUrl}/api${teablePath}`;
+                  const tryRequest = async () => {
+                    const targetUrl = `https://app.teable.ai/api${teablePath}`;
+                    const hasBody = method !== 'GET' && method !== 'DELETE' && teableBody;
+                    
                     return fetch(targetUrl, {
                       method,
                       headers: {
                         'Authorization': `Bearer ${env.VITE_TEABLE_API_KEY}`,
-                        'Content-Type': 'application/json',
+                        'Content-Type': hasBody ? 'application/json' : undefined,
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'application/json'
                       },
-                      body: (method !== 'GET' && method !== 'DELETE') ? JSON.stringify(teableBody) : undefined,
+                      body: hasBody ? JSON.stringify(teableBody) : undefined,
                     });
                   };
 
-                  let response = await tryRequest('https://app.teable.ai');
-                  if (!response.ok && (response.status === 404 || response.status >= 500)) {
-                    response = await tryRequest('https://api.teable.io/v1');
-                  }
+                  let response = await tryRequest();
                   
-                  const data = await response.json();
-                  res.writeHead(response.status, { 
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-                  });
-                  res.end(JSON.stringify(data));
-                } catch (err) {
+                  const responseText = await response.text();
+                  let data;
+                  try {
+                    data = JSON.parse(responseText);
+                  } catch (e) {
+                    data = { raw: responseText };
+                  }
+
+                  if (!res.headersSent) {
+                    res.writeHead(response.status, { 
+                      'Content-Type': 'application/json',
+                      'Access-Control-Allow-Origin': '*',
+                      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                    });
+                    res.end(JSON.stringify(data));
+                  }
+                } catch (err: any) {
                   console.error('Local Proxy Error:', err);
-                  res.writeHead(500);
-                  res.end(JSON.stringify({ error: 'Local Proxy Error' }));
+                  if (!res.headersSent) {
+                    res.writeHead(500);
+                    res.end(JSON.stringify({ error: 'Local Proxy Error', details: err.message }));
+                  }
                 }
               });
-              return true; // bypass standard proxy
+              return false; // bypass standard proxy
             }
           }
         }
