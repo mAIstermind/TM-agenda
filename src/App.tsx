@@ -385,11 +385,13 @@ export default function App() {
     }
 
     return (
-      <div className="min-h-screen bg-slate-900 flex justify-center py-4 sm:py-8 overflow-y-auto">
-        <button onClick={() => setIsLiveView(false)} className="fixed top-4 right-4 z-50 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-xl transition-all shadow-xl border border-white/20">
-          <X className="w-6 h-6"/>
-        </button>
-        <div className="w-full max-w-[210mm] min-h-[297mm] bg-white shadow-2xl relative">
+      <div className="min-h-screen bg-slate-900 py-4 sm:py-8 overflow-auto">
+        {!window.location.hostname.includes('live') && (
+          <button onClick={() => setIsLiveView(false)} className="fixed top-4 right-4 z-50 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-xl transition-all shadow-xl border border-white/20">
+            <X className="w-6 h-6"/>
+          </button>
+        )}
+        <div className="w-[210mm] min-h-[297mm] bg-white shadow-2xl relative mx-auto shrink-0">
           <StitchAgenda 
             readOnly
             segments={agenda} 
