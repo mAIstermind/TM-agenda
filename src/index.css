@@ -50,78 +50,30 @@
 }
 
 @media print {
-  /* High Contrast and Scale Reset */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    box-sizing: border-box !important;
   }
 
   body, html {
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
-    height: 100vh !important;
-    overflow: hidden !important;
   }
 
-  /* Hide UI elements */
+  /* Hide UI elements that shouldn't be printed */
   header:not(.agenda-header), nav, footer, .top-bar, .bottom-nav, button, .no-print, .lucide {
     display: none !important;
   }
   
-  #root {
-  /* Fixed A4 Boundary - EXACTLY 1 Page, No Scaling Hacks */
   .print-page, .printable-area {
-    width: 100% !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow: hidden !important;
-    position: relative !important;
-    margin: 0 !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     background: white !important;
-    border: none !important;
     box-shadow: none !important;
+    border: none !important;
+    overflow: hidden !important;
   }
-
-  /* Aggressive Font Resizing */
-  .printable-area * { line-height: 1.05 !important; }
-  .printable-area h1 { font-size: 14px !important; margin-bottom: 2px !important; }
-  .printable-area .text-2xl { font-size: 12px !important; }
-  .printable-area .text-xl { font-size: 11px !important; }
-  .printable-area .text-lg { font-size: 9px !important; }
-  .printable-area .text-sm { font-size: 8px !important; }
-  .printable-area .text-xs, .printable-area .text-\[10px\] { font-size: 7px !important; }
-  .printable-area .text-\[9px\], .printable-area .text-\[8px\] { font-size: 6px !important; }
-
-  /* Eliminate faint greys - FORCE DEEP BLACK */
-  .text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500, .text-slate-600, .text-gray-600 {
-    color: #000000 !important; /* Pure black for print readability */
-    font-weight: 700 !important;
-  }
-  .text-tm-navy { color: #004165 !important; }
-  .text-tm-maroon { color: #772432 !important; }
-
-  /* Aggressive Spacing Reduction */
-  .printable-area .p-6, .printable-area .p-5, .bg-\[\#772432\], .bg-black\/20 { padding: 6px !important; }
-  .printable-area .py-3, .printable-area .py-2, .printable-area .py-1 { padding-top: 1px !important; padding-bottom: 1px !important; }
-  .printable-area .px-4, .printable-area .px-3, .printable-area .px-2 { padding-left: 4px !important; padding-right: 4px !important; }
-  .printable-area .mb-6 { margin-bottom: 2px !important; }
-  .printable-area .mt-6 { margin-top: 2px !important; }
-  
-  .printable-area .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 4px !important;
-    margin-bottom: 0 !important;
-  }
-  .printable-area .space-y-4 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 2px !important;
-    margin-bottom: 0 !important;
-  }
-
-  /* Structural Tweaks */
-  .agenda-sidebar { width: 140px !important; flex-basis: 140px !important; }
-  .agenda-header img { height: 32px !important; } /* Shrink the giant 64px logo */
-  .border-b { border-bottom-width: 1px !important; }
 }

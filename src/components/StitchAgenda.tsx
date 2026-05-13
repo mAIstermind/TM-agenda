@@ -49,50 +49,50 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
   return (
     <div className="bg-white shadow-2xl border border-gray-200 font-['Montserrat',sans-serif] mx-auto print:shadow-none print:border-none print:m-0 print-page printable-area" 
          id="agenda-page">
-      <header className="bg-[#004165] text-white p-5 print:bg-[#004165] print:text-white relative shrink-0 agenda-header">
-        <div className="flex justify-between items-center gap-8">
-          <div className="flex items-center gap-6 shrink-0">
-            <img alt="TM Logo" className="h-16 w-auto object-contain" src={logoFinal}/>
-            <div className="text-left border-l border-white/20 pl-6">
-              <h1 className="text-2xl font-black tracking-tighter leading-tight uppercase">Toastmasters</h1>
-              <p className="text-[9px] tracking-[0.3em] font-light -mt-1 uppercase opacity-80">International</p>
+      <header className="bg-[#004165] text-white p-5 print:p-2 print:bg-[#004165] print:text-white relative shrink-0 agenda-header">
+        <div className="flex justify-between items-center gap-8 print:gap-3">
+          <div className="flex items-center gap-6 shrink-0 print:gap-3">
+            <img alt="TM Logo" className="h-16 w-auto object-contain print:h-8" src={logoFinal}/>
+            <div className="text-left border-l border-white/20 pl-6 print:pl-3">
+              <h1 className="text-2xl print:text-[14px] font-black tracking-tighter leading-tight uppercase">Toastmasters</h1>
+              <p className="text-[9px] print:text-[6px] tracking-[0.3em] font-light -mt-1 uppercase opacity-80">International</p>
             </div>
           </div>
           
           <div className="flex-1 text-right min-w-0">
-            <h2 className="text-xl font-black uppercase tracking-tight truncate">Inspiring Speakers PDC</h2>
-            <div className="flex justify-end gap-x-2 mt-1 text-xs font-medium">
-              <span className="opacity-60 text-[9px] font-black uppercase tracking-widest shrink-0">Theme:</span>
+            <h2 className="text-xl print:text-[12px] font-black uppercase tracking-tight truncate">Inspiring Speakers PDC</h2>
+            <div className="flex justify-end gap-x-2 mt-1 print:mt-0 text-xs font-medium">
+              <span className="opacity-60 text-[9px] print:text-[6px] font-black uppercase tracking-widest shrink-0">Theme:</span>
               <input 
                 className="bg-transparent border-none text-tm-gold font-bold w-full text-right focus:outline-none p-0 italic text-xs print:hidden" 
                 value={details.theme}
                 onChange={(e) => onEditDetail?.('theme', e.target.value)}
                 style={{ color: '#F2DF74' }}
               />
-              <div className="hidden print:block text-[#F2DF74] font-bold italic text-xs text-right break-words">
+              <div className="hidden print:block text-[#F2DF74] font-bold italic text-xs print:text-[8px] text-right break-words leading-tight">
                 {details.theme}
               </div>
             </div>
           </div>
         </div>
-        <div className="mt-4 py-1 bg-white/10 border-t border-b border-white/10 text-center">
-          <span className="text-[10px] uppercase tracking-widest font-black opacity-90">Session: </span>
+        <div className="mt-4 print:mt-2 py-1 print:py-0 bg-white/10 border-t border-b border-white/10 text-center">
+          <span className="text-[10px] print:text-[7px] uppercase tracking-widest font-black opacity-90">Session: </span>
           <input 
             className="bg-transparent border-none text-white font-black w-12 text-center focus:outline-none p-0 print:hidden" 
             value={details.sessionNum}
             onChange={(e) => onEditDetail?.('sessionNum', e.target.value)}
           />
-          <div className="hidden print:inline-block text-white font-black w-12 text-center">
+          <div className="hidden print:inline-block text-white font-black w-12 print:w-auto text-center print:text-[8px]">
             {details.sessionNum}
           </div>
         </div>
       </header>
 
-      <div className="flex flex-1">
-        <aside className="agenda-sidebar w-[180px] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
-          <div className="p-6 space-y-6">
-            <div className="text-center mb-6 pb-4 border-b border-white/10">
-              <p className="text-[9px] uppercase tracking-widest opacity-60 mb-1">Meeting Date</p>
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="agenda-sidebar w-[180px] print:w-[130px] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
+          <div className="p-6 print:p-3 space-y-6 print:space-y-2">
+            <div className="text-center mb-6 print:mb-2 pb-4 print:pb-2 border-b border-white/10">
+              <p className="text-[9px] print:text-[6px] uppercase tracking-widest opacity-60 mb-1 print:mb-0">Meeting Date</p>
               <input 
                 type="date"
                 className="font-black text-xs text-white bg-transparent border-none focus:outline-none w-full text-center print:hidden cursor-pointer"
@@ -100,7 +100,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                 onChange={(e) => onEditDetail?.('date', e.target.value)}
                 style={{ colorScheme: 'dark' }}
               />
-              <div className="hidden print:block font-black text-xs text-white">
+              <div className="hidden print:block font-black text-xs print:text-[8px] text-white">
                 {(() => {
                   const val = details.date ? details.date.split('T')[0] : '';
                   if (!val) return 'TBD';
@@ -115,38 +115,38 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                 })()}
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 print:space-y-1.5">
               {officers.map(off => (
                 <div key={off.role} className="text-center">
-                  <p className="text-[8px] uppercase tracking-widest opacity-50 mb-0.5">{off.role}</p>
-                  <p className="font-black text-[11px] text-[#F2DF74]">{off.name}</p>
+                  <p className="text-[8px] print:text-[5px] uppercase tracking-widest opacity-50 mb-0.5">{off.role}</p>
+                  <p className="font-black text-[11px] print:text-[8px] text-[#F2DF74]">{off.name}</p>
                 </div>
               ))}
             </div>
-            <div className="pt-6 mt-6 border-t border-white/20 text-center space-y-4">
-              <p className="text-[9px] font-semibold leading-relaxed opacity-70">
+            <div className="pt-6 print:pt-2 mt-6 print:mt-2 border-t border-white/20 text-center space-y-4 print:space-y-1">
+              <p className="text-[9px] print:text-[6px] font-semibold leading-relaxed print:leading-tight opacity-70">
                 Join us at the Aloft Playa del Carmen every Thursday evening at 7 pm
               </p>
-              <p className="text-[9px] font-black tracking-widest text-[#F2DF74] uppercase">InspiringSpeakersPDC.com</p>
+              <p className="text-[9px] print:text-[6px] font-black tracking-widest text-[#F2DF74] uppercase">InspiringSpeakersPDC.com</p>
             </div>
           </div>
 
-          <div className="bg-black/20 p-6 space-y-4 flex-1">
-            <h3 className="italic text-lg font-black text-[#F2DF74]">Word of the Day</h3>
-            <div className="space-y-4">
+          <div className="bg-black/20 p-6 print:p-3 space-y-4 print:space-y-2 flex-1">
+            <h3 className="italic text-lg print:text-[10px] font-black text-[#F2DF74] print:leading-none">Word of the Day</h3>
+            <div className="space-y-4 print:space-y-1.5">
               <div>
-                <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Word:</p>
+                <p className="text-[8px] print:text-[5px] uppercase tracking-widest opacity-50 mb-1 print:mb-0">Word:</p>
                 <input 
                   className="font-black text-xs bg-white/10 rounded px-2 py-1 w-full text-white border-none focus:ring-0 print:hidden" 
                   value={wotd.word}
                   onChange={(e) => onEditDetail?.('word', e.target.value)}
                 />
-                <div className="hidden print:block font-black text-xs text-white break-words">
+                <div className="hidden print:block font-black text-xs print:text-[9px] text-white break-words print:leading-none">
                   {wotd.word}
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-[8px] uppercase tracking-widest opacity-50">Definition:</p>
+              <div className="space-y-1 print:space-y-0">
+                <p className="text-[8px] print:text-[5px] uppercase tracking-widest opacity-50">Definition:</p>
                 <textarea 
                   className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none print:hidden overflow-hidden" 
                   rows={2} 
@@ -155,12 +155,12 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className="hidden print:block text-[10px] italic font-medium leading-snug text-white whitespace-pre-wrap break-words">
+                <div className="hidden print:block text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words">
                   {wotd.meaning}
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-[8px] uppercase tracking-widest opacity-50">Example:</p>
+              <div className="space-y-1 print:space-y-0">
+                <p className="text-[8px] print:text-[5px] uppercase tracking-widest opacity-50">Example:</p>
                 <textarea 
                   className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none print:hidden overflow-hidden" 
                   rows={2} 
@@ -169,70 +169,70 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className="hidden print:block text-[10px] italic font-medium leading-snug text-white whitespace-pre-wrap break-words">
+                <div className="hidden print:block text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words">
                   {wotd.example}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-black/40 p-6 space-y-3 shrink-0 print:p-4">
-            <h4 className="text-[9px] uppercase tracking-[0.3em] font-black text-[#F2DF74] text-center">Announcements</h4>
-            <div className="w-full text-center font-bold text-[10px] italic text-slate-200 whitespace-pre-wrap break-words leading-tight">
+          <div className="bg-black/40 p-6 print:p-3 space-y-3 print:space-y-1 shrink-0">
+            <h4 className="text-[9px] print:text-[6px] uppercase tracking-[0.3em] font-black text-[#F2DF74] text-center print:leading-none">Announcements</h4>
+            <div className="w-full text-center font-bold text-[10px] print:text-[7px] italic text-slate-200 whitespace-pre-wrap break-words leading-tight print:leading-tight">
               {details.announcements}
             </div>
           </div>
 
-          <div className="p-6 shrink-0 print:p-4 border-t border-white/10 mt-auto">
-            <h4 className="text-[8px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1">Toastmasters Core Values</h4>
-            <div className="w-full text-center font-black text-[9px] text-[#F2DF74] tracking-wide leading-tight">
+          <div className="p-6 print:p-3 shrink-0 border-t border-white/10 mt-auto">
+            <h4 className="text-[8px] print:text-[5px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1 print:mb-0">Toastmasters Core Values</h4>
+            <div className="w-full text-center font-black text-[9px] print:text-[6px] text-[#F2DF74] tracking-wide leading-tight">
               Integrity, Respect, Service, and Excellence
             </div>
           </div>
         </aside>
 
-        <main className="flex-1 p-5 print:p-2 bg-white agenda-main flex flex-col">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b-2 border-gray-100">
-                <th className="py-2 text-left text-[9px] uppercase tracking-widest text-slate-500 font-bold w-16">Time</th>
-                <th className="py-2 text-left text-[9px] uppercase tracking-widest text-slate-500 font-bold w-16">Dur</th>
-                <th className="py-2 text-left text-[9px] uppercase tracking-widest text-slate-500 font-bold">Agenda Item</th>
-                <th className="py-2 text-right text-[9px] uppercase tracking-widest text-slate-500 font-bold">Speaker / Role</th>
+        <main className="flex-1 p-5 print:p-2 bg-white agenda-main flex flex-col h-full overflow-hidden">
+          <table className="w-full border-collapse h-full">
+            <thead className="print:h-[20px]">
+              <tr className="border-b-2 border-gray-100 print:border-gray-800">
+                <th className="py-2 print:py-0.5 text-left text-[9px] print:text-[6px] uppercase tracking-widest text-slate-500 print:text-black font-bold w-16 print:w-12">Time</th>
+                <th className="py-2 print:py-0.5 text-center text-[9px] print:text-[6px] uppercase tracking-widest text-slate-500 print:text-black font-bold w-16 print:w-12">Dur</th>
+                <th className="py-2 print:py-0.5 px-3 text-left text-[9px] print:text-[6px] uppercase tracking-widest text-slate-500 print:text-black font-bold">Agenda Item</th>
+                <th className="py-2 print:py-0.5 px-3 text-right text-[9px] print:text-[6px] uppercase tracking-widest text-slate-500 print:text-black font-bold">Speaker / Role</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="print:text-black">
               {segments.map((seg, idx) => {
                 const isSpeaker = seg.segment.toLowerCase().startsWith('speaker #');
                 return (
-                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-b border-gray-100 group print:bg-transparent`}>
-                    <td className="text-left font-black text-[#004165] py-3 text-xs w-20">
-                      {isSpeaker && <span className="block text-[8px] uppercase tracking-widest text-slate-400 mb-0.5">{seg.segment}</span>}
+                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-b border-gray-100 group print:bg-transparent print:border-gray-200`}>
+                    <td className="text-left font-black text-[#004165] print:text-black py-3 print:py-0.5 text-xs print:text-[7px] w-20 print:w-12 align-top">
+                      {isSpeaker && <span className="block text-[8px] print:text-[5px] uppercase tracking-widest text-slate-400 print:text-gray-600 mb-0.5 print:mb-0">{seg.segment}</span>}
                       <span className="block w-full">{seg.time}</span>
                     </td>
-                    <td className="text-center py-2 w-16">
-                      <span className="block w-full text-gray-400 font-bold text-[10px]">{seg.duration}</span>
+                    <td className="text-center py-2 print:py-0.5 w-16 print:w-12 align-top">
+                      <span className="block w-full text-gray-400 print:text-gray-800 font-bold text-[10px] print:text-[6px]">{seg.duration}</span>
                     </td>
-                    <td className="px-3 py-2 overflow-hidden">
+                    <td className="px-3 print:px-1 py-2 print:py-0.5 overflow-hidden align-top">
                       {isSpeaker ? (
-                        <div className="font-black text-[#004165] text-xs leading-tight whitespace-pre-wrap break-words print:text-black">
+                        <div className="font-black text-[#004165] text-xs print:text-[8px] leading-tight print:leading-[1.1] whitespace-pre-wrap break-words print:text-black">
                           {seg.details}
                         </div>
                       ) : (
                         <>
-                          <div className="font-black text-[#004165] uppercase tracking-tight leading-tight whitespace-normal break-words">
+                          <div className="font-black text-[#004165] print:text-black print:text-[8px] uppercase tracking-tight leading-tight print:leading-[1.1] whitespace-normal break-words">
                             {seg.segment}
                           </div>
                           {seg.details && (
-                            <div className="text-[9px] text-gray-500 font-medium leading-tight whitespace-pre-wrap break-words mt-0.5 print:text-black">
+                            <div className="text-[9px] print:text-[6px] text-gray-500 print:text-gray-800 font-medium leading-tight print:leading-[1.1] whitespace-pre-wrap break-words mt-0.5 print:mt-0">
                               {seg.details}
                             </div>
                           )}
                         </>
                       )}
                     </td>
-                    <td className="px-3 py-2 overflow-hidden">
-                      <div className="font-black text-[#772432] leading-tight whitespace-normal break-words">
+                    <td className="px-3 print:px-1 py-2 print:py-0.5 overflow-hidden align-top text-right">
+                      <div className="font-black text-[#772432] print:text-black print:text-[8px] leading-tight print:leading-[1.1] whitespace-normal break-words inline-block">
                         {seg.assignedTo === 'N/A' || seg.assignedTo === 'n/a' ? '' : seg.assignedTo}
                       </div>
                     </td>
