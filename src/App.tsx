@@ -171,10 +171,13 @@ export default function App() {
   useEffect(() => localStorage.setItem('tm_example', wordExample), [wordExample]);
 
   useEffect(() => {
+    let interval: any;
     if (window.location.hostname.includes('live')) {
       setIsLiveView(true);
+      interval = setInterval(refreshData, 30000);
     }
     refreshData();
+    return () => clearInterval(interval);
   }, []);
 
   const refreshData = async () => {
@@ -370,7 +373,17 @@ export default function App() {
     );
   }
 
-  if (isLiveView && agenda) {
+  if (isLiveView) {
+    if (!agenda) {
+      return (
+        <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white p-6 text-center">
+          <Loader2 className="w-12 h-12 text-[#F2DF74] animate-spin mb-4" />
+          <h2 className="text-2xl font-black uppercase tracking-widest text-[#F2DF74] mb-2">Agenda Not Ready</h2>
+          <p className="text-slate-400 max-w-md">The agenda has not been published yet. Please wait, this page will automatically refresh.</p>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-slate-900 flex justify-center py-4 sm:py-8 overflow-y-auto">
         <button onClick={() => setIsLiveView(false)} className="fixed top-4 right-4 z-50 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-xl transition-all shadow-xl border border-white/20">
