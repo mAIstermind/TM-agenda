@@ -142,6 +142,7 @@ export default function App() {
   const [chatInput, setChatInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
   const [showAssistant, setShowAssistant] = useState(true);
+  const [isLiveView, setIsLiveView] = useState(false);
   
   // Modals state
   const [modalType, setModalType] = useState<'claim' | 'add-role' | 'edit-role' | 'add-member' | 'edit-member' | null>(null);
@@ -356,6 +357,25 @@ export default function App() {
     );
   }
 
+  if (isLiveView && agenda) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex justify-center py-4 sm:py-8 overflow-y-auto">
+        <button onClick={() => setIsLiveView(false)} className="fixed top-4 right-4 z-50 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-xl transition-all shadow-xl border border-white/20">
+          <X className="w-6 h-6"/>
+        </button>
+        <div className="w-full max-w-[210mm] min-h-[297mm] bg-white shadow-2xl relative">
+          <StitchAgenda 
+            readOnly
+            segments={agenda} 
+            details={{ theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements }} 
+            wotd={{ word: wordOfTheDay, meaning: wordMeaning, example: wordExample }} 
+            members={members}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-32">
       <TopBar connectionError={connectionError} />
@@ -492,6 +512,7 @@ export default function App() {
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-10 no-print">
                    <div className="flex gap-3">
                      <button onClick={() => window.print()} className="px-6 md:px-8 py-3 bg-[#004165] text-white rounded-2xl font-black flex items-center gap-2 shadow-lg"><Printer className="w-4 h-4"/> Print A4</button>
+                     <button onClick={() => setIsLiveView(true)} className="px-4 md:px-6 py-3 bg-emerald-600 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg hover:bg-emerald-700 transition-colors"><Eye className="w-4 h-4"/> Live View</button>
                      <button onClick={() => setAgendaDraft(null)} className="px-4 md:px-6 py-3 bg-slate-100 rounded-2xl text-slate-500 font-bold">Discard</button>
                      <button onClick={() => setShowAssistant(!showAssistant)} className="px-4 md:px-6 py-3 bg-blue-50 text-blue-600 rounded-2xl font-bold border border-blue-100 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4"/>

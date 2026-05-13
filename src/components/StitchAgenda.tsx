@@ -10,6 +10,7 @@ interface StitchAgendaProps {
   members: Member[];
   onEditSegment?: (index: number, field: string, value: string) => void;
   onEditDetail?: (field: string, value: string) => void;
+  readOnly?: boolean;
 }
 
 export const StitchAgenda: React.FC<StitchAgendaProps> = ({ 
@@ -18,7 +19,8 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
   wotd, 
   members,
   onEditSegment,
-  onEditDetail
+  onEditDetail,
+  readOnly = false
 }) => {
   const roles = [
     'President', 
@@ -64,12 +66,12 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
             <div className="flex justify-end gap-x-2 mt-1 print:mt-0 text-xs font-medium">
               <span className="opacity-60 text-[9px] print:text-[6px] font-black uppercase tracking-widest shrink-0">Theme:</span>
               <input 
-                className="bg-transparent border-none text-tm-gold font-bold w-full text-right focus:outline-none p-0 italic text-xs print:hidden" 
+                className={`bg-transparent border-none text-tm-gold font-bold w-full text-right focus:outline-none p-0 italic text-xs ${readOnly ? 'hidden' : 'print:hidden'}`}
                 value={details.theme}
                 onChange={(e) => onEditDetail?.('theme', e.target.value)}
                 style={{ color: '#F2DF74' }}
               />
-              <div className="hidden print:block text-[#F2DF74] font-bold italic text-xs print:text-[8px] text-right break-words leading-tight">
+              <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[#F2DF74] font-bold italic text-xs print:text-[8px] text-right break-words leading-tight`}>
                 {details.theme}
               </div>
             </div>
@@ -78,11 +80,11 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
         <div className="mt-4 print:mt-2 py-1 print:py-0 bg-white/10 border-t border-b border-white/10 text-center">
           <span className="text-[10px] print:text-[7px] uppercase tracking-widest font-black opacity-90">Session: </span>
           <input 
-            className="bg-transparent border-none text-white font-black w-12 text-center focus:outline-none p-0 print:hidden" 
+            className={`bg-transparent border-none text-white font-black w-12 text-center focus:outline-none p-0 ${readOnly ? 'hidden' : 'print:hidden'}`}
             value={details.sessionNum}
             onChange={(e) => onEditDetail?.('sessionNum', e.target.value)}
           />
-          <div className="hidden print:inline-block text-white font-black w-12 print:w-auto text-center print:text-[8px]">
+          <div className={`${readOnly ? 'inline-block' : 'hidden print:inline-block'} text-white font-black w-12 print:w-auto text-center print:text-[8px]`}>
             {details.sessionNum}
           </div>
         </div>
@@ -95,12 +97,12 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
               <p className="text-[9px] print:text-[6px] uppercase tracking-widest opacity-60 mb-1 print:mb-0">Meeting Date</p>
               <input 
                 type="date"
-                className="font-black text-xs text-white bg-transparent border-none focus:outline-none w-full text-center print:hidden cursor-pointer"
+                className={`font-black text-xs text-white bg-transparent border-none focus:outline-none w-full text-center cursor-pointer ${readOnly ? 'hidden' : 'print:hidden'}`}
                 value={details.date ? details.date.split('T')[0] : ''}
                 onChange={(e) => onEditDetail?.('date', e.target.value)}
                 style={{ colorScheme: 'dark' }}
               />
-              <div className="hidden print:block font-black text-xs print:text-[8px] text-white">
+              <div className={`${readOnly ? 'block' : 'hidden print:block'} font-black text-xs print:text-[8px] text-white`}>
                 {(() => {
                   const val = details.date ? details.date.split('T')[0] : '';
                   if (!val) return 'TBD';
@@ -137,39 +139,39 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
               <div>
                 <p className="text-[8px] print:text-[5px] uppercase tracking-widest opacity-50 mb-1 print:mb-0">Word:</p>
                 <input 
-                  className="font-black text-xs bg-white/10 rounded px-2 py-1 w-full text-white border-none focus:ring-0 print:hidden" 
+                  className={`font-black text-xs bg-white/10 rounded px-2 py-1 w-full text-white border-none focus:ring-0 ${readOnly ? 'hidden' : 'print:hidden'}`}
                   value={wotd.word}
                   onChange={(e) => onEditDetail?.('word', e.target.value)}
                 />
-                <div className="hidden print:block font-black text-xs print:text-[9px] text-white break-words print:leading-none">
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} font-black text-xs print:text-[9px] text-white break-words print:leading-none`}>
                   {wotd.word}
                 </div>
               </div>
               <div className="space-y-1 print:space-y-0">
                 <p className="text-[8px] print:text-[5px] uppercase tracking-widest opacity-50">Definition:</p>
                 <textarea 
-                  className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none print:hidden overflow-hidden" 
+                  className={`text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none overflow-hidden ${readOnly ? 'hidden' : 'print:hidden'}`}
                   rows={2} 
                   value={wotd.meaning}
                   onChange={(e) => onEditDetail?.('meaning', e.target.value)}
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className="hidden print:block text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words">
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
                   {wotd.meaning}
                 </div>
               </div>
               <div className="space-y-1 print:space-y-0">
                 <p className="text-[8px] print:text-[5px] uppercase tracking-widest opacity-50">Example:</p>
                 <textarea 
-                  className="text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none print:hidden overflow-hidden" 
+                  className={`text-[10px] italic font-medium leading-snug bg-white/5 rounded p-2 w-full text-slate-200 border-none focus:ring-0 resize-none overflow-hidden ${readOnly ? 'hidden' : 'print:hidden'}`}
                   rows={2} 
                   value={wotd.example}
                   onChange={(e) => onEditDetail?.('example', e.target.value)}
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className="hidden print:block text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words">
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
                   {wotd.example}
                 </div>
               </div>
