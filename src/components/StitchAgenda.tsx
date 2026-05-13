@@ -47,8 +47,8 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
   });
 
   return (
-    <div className="bg-white shadow-2xl border border-gray-200 font-['Montserrat',sans-serif] mx-auto print:shadow-none print:border-none print:m-0 print:w-[210mm] printable-area" 
-         style={{ width: '210mm', minHeight: '297mm', height: 'auto', padding: '0', display: 'flex', flexDirection: 'column' }} id="agenda-page">
+    <div className="bg-white shadow-2xl border border-gray-200 font-['Montserrat',sans-serif] mx-auto print:shadow-none print:border-none print:m-0 print-page printable-area" 
+         id="agenda-page">
       <header className="bg-[#004165] text-white p-5 print:bg-[#004165] print:text-white relative shrink-0 agenda-header">
         <div className="flex justify-between items-center gap-8">
           <div className="flex items-center gap-6 shrink-0">
