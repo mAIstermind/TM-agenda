@@ -38,7 +38,8 @@ import {
   deleteMember,
   updateMeetingRole,
   updateRoleTitle,
-  updateMeetingDetails
+  updateMeetingDetails,
+  saveAgendaJSON
 } from './services/teable';
 import { generateMeetingAgenda, editAgendaWithAI, AgendaSegment } from './services/gemini';
 import { MeetingRole, Member } from './types';
@@ -170,6 +171,9 @@ export default function App() {
   useEffect(() => localStorage.setItem('tm_example', wordExample), [wordExample]);
 
   useEffect(() => {
+    if (window.location.hostname.includes('live')) {
+      setIsLiveView(true);
+    }
     refreshData();
   }, []);
 
@@ -200,6 +204,13 @@ export default function App() {
         if (tmod.date) setMeetingDate(tmod.date);
         if (tmod.sessionNum) setSessionNum(tmod.sessionNum);
         if (tmod.announcements) setAnnouncements(tmod.announcements);
+        if (tmod.agenda_json) {
+          try {
+            setAgendaDraft(JSON.parse(tmod.agenda_json));
+          } catch (e) {
+            console.error("Failed to parse saved agenda json", e);
+          }
+        }
       }
       const gram = hydratedRoster.find(r => r.role.toLowerCase().includes('grammarian'));
       if (gram) {
@@ -329,6 +340,7 @@ export default function App() {
         wordExample
       });
       setAgendaDraft(segments);
+      await saveAgendaJSON(enrichedRoster, JSON.stringify(segments));
       setActiveTab('agenda');
     } catch (error: any) { 
       const msg = error.message.toLowerCase();
@@ -344,6 +356,7 @@ export default function App() {
     try {
       const next = await editAgendaWithAI(agenda, chatInput);
       setAgendaDraft(next);
+      await saveAgendaJSON(roster, JSON.stringify(next));
       setChatInput('');
     } catch (err: any) { alert("AI Edit failed: " + err.message); }
     finally { setIsChatting(false); }
@@ -527,7 +540,12 @@ export default function App() {
                       details={{ theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements }} 
                       wotd={{ word: wordOfTheDay, meaning: wordMeaning, example: wordExample }} 
                       members={members}
-                      onEditSegment={(idx, field, val) => { const next = [...agenda]; (next[idx] as any)[field] = val; setAgendaDraft(next); }}
+                      onEditSegment={(idx, field, val) => { 
+                        const next = [...agenda]; 
+                        (next[idx] as any)[field] = val; 
+                        setAgendaDraft(next); 
+                        saveAgendaJSON(roster, JSON.stringify(next));
+                      }}
                       onEditDetail={(field, val) => {
                         if (field === 'theme') setTheme(val); if (field === 'sessionNum') setSessionNum(val);
                         if (field === 'date') setMeetingDate(val); if (field === 'announcements') setAnnouncements(val);

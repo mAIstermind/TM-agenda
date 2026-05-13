@@ -21,6 +21,7 @@ export interface MeetingRole {
   wotd?: string;
   meaning?: string;
   example?: string;
+  agenda_json?: string;
   order?: number;
 }
 

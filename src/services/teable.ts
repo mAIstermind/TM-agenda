@@ -83,6 +83,7 @@ export async function fetchMeetingRoster(): Promise<MeetingRole[]> {
         wotd: f.Word_of_the_Day || f["Word of the Day"] || '',
         meaning: f.Word_Meaning || f["Word Meaning"] || '',
         example: f.Word_Example || f["Word Example"] || '',
+        agenda_json: f.Agenda_JSON || f.agenda_json || '',
         sessionNum: f.Session || f.session || f.SessionNum || '',
         announcements: f.Announcements || f.announcements || ''
       };
@@ -196,6 +197,9 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
 
     const announcements = extraFields.Announcements || extraFields.announcements;
     if (announcements !== undefined) fields.Announcements = announcements;
+
+    const agendaJson = extraFields.Agenda_JSON || extraFields.agenda_json;
+    if (agendaJson !== undefined) fields.Agenda_JSON = agendaJson;
   }
 
 
@@ -257,6 +261,14 @@ export async function updateMeetingDetails(roster: MeetingRole[], details: any):
     })) success = false;
   }
   return success;
+}
+
+export async function saveAgendaJSON(roster: MeetingRole[], agendaJsonStr: string): Promise<boolean> {
+  const tmod = roster.find(r => r.role.toLowerCase().includes('toastmaster'));
+  if (tmod) {
+    return await updateMeetingRole(tmod.id, tmod.name, { Agenda_JSON: agendaJsonStr });
+  }
+  return false;
 }
 
 export async function updateRoleTitle(recordId: string, newTitle: string): Promise<boolean> {
