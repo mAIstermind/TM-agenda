@@ -92,7 +92,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="agenda-sidebar w-[220px] print:w-[155px] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
+        <aside className="agenda-sidebar w-[220px] print:w-[170px] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
           <div className="p-6 print:p-3 space-y-6 print:space-y-2">
             <div className="text-center mb-6 print:mb-2 pb-4 print:pb-2 border-b border-white/10">
               <p className="text-[9px] print:text-[6px] uppercase tracking-widest opacity-60 mb-1 print:mb-0">Meeting Date</p>
@@ -144,7 +144,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   value={wotd.word}
                   onChange={(e) => onEditDetail?.('word', e.target.value)}
                 />
-                <div className={`${readOnly ? 'block' : 'hidden print:block'} font-black text-xs print:text-[11px] text-white break-words print:leading-none`}>
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} font-black text-xs print:text-[12px] text-white break-words print:leading-none`}>
                   {wotd.word}
                 </div>
               </div>
@@ -158,7 +158,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[9px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[10px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
                   {wotd.meaning}
                 </div>
               </div>
@@ -172,7 +172,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[9px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[10px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
                   {wotd.example}
                 </div>
               </div>
@@ -227,7 +227,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                       <span className="block w-full">{seg.time}</span>
                     </td>
                     <td className="text-center py-2 print:py-0.5 w-16 print:w-12 align-top">
-                      <span className="block w-full text-gray-400 print:text-gray-800 font-bold text-[10px] print:text-[9px]">{seg.duration}</span>
+                      <span className="block w-full text-gray-400 print:text-gray-800 font-bold text-[10px] print:text-[10px]">{seg.duration}</span>
                     </td>
                     <td className="px-3 print:px-1 py-2 print:py-0.5 overflow-hidden align-top">
                       {isSpeaker ? (
