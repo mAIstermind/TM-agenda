@@ -118,12 +118,12 @@ const RoleCard = ({ role, onClaim, onEdit, onDelete, onUnassign, showDuration }:
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
           {role.status === 'Confirmed' ? (
-            <button onClick={() => onUnassign(role.id)} className="p-2 text-slate-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all" title="Unassign"><UserCircle className="w-5 h-5" /></button>
+            <button onClick={() => onUnassign(role.id)} className="p-2 bg-slate-100 text-slate-500 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all" title="Unassign"><UserCircle className="w-5 h-5" /></button>
           ) : (
             <button onClick={() => onClaim(role.id)} className="px-5 py-2 bg-[#004165] text-white text-xs font-bold rounded-xl hover:bg-blue-900 transition-all shadow-lg active:scale-95 mr-2">Claim</button>
           )}
-          <button onClick={() => onEdit(role.id)} className="p-2 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all" title="Edit Role"><Settings2 className="w-5 h-5" /></button>
-          <button onClick={() => onDelete(role.id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Delete Role"><Trash2 className="w-5 h-5" /></button>
+          <button onClick={() => onEdit(role.id)} className="p-2 bg-slate-100 text-slate-500 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all" title="Edit Role"><Settings2 className="w-5 h-5" /></button>
+          <button onClick={() => onDelete(role.id)} className="p-2 bg-slate-100 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Delete Role"><Trash2 className="w-5 h-5" /></button>
         </div>
       </div>
     </div>
@@ -158,6 +158,9 @@ export default function App() {
   const [wordOfTheDay, setWordOfTheDay] = useState(() => localStorage.getItem('tm_wotd') || 'Benevolence');
   const [wordMeaning, setWordMeaning] = useState(() => localStorage.getItem('tm_meaning') || 'Disposition to do good.');
   const [wordExample, setWordExample] = useState(() => localStorage.getItem('tm_example') || 'He was known for his benevolence.');
+  const [showMission, setShowMission] = useState(() => localStorage.getItem('tm_show_mission') !== 'false');
+  const [showValues, setShowValues] = useState(() => localStorage.getItem('tm_show_values') !== 'false');
+  const [showAnnouncements, setShowAnnouncements] = useState(() => localStorage.getItem('tm_show_announcements') !== 'false');
 
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
@@ -169,6 +172,9 @@ export default function App() {
   useEffect(() => localStorage.setItem('tm_wotd', wordOfTheDay), [wordOfTheDay]);
   useEffect(() => localStorage.setItem('tm_meaning', wordMeaning), [wordMeaning]);
   useEffect(() => localStorage.setItem('tm_example', wordExample), [wordExample]);
+  useEffect(() => localStorage.setItem('tm_show_mission', String(showMission)), [showMission]);
+  useEffect(() => localStorage.setItem('tm_show_values', String(showValues)), [showValues]);
+  useEffect(() => localStorage.setItem('tm_show_announcements', String(showAnnouncements)), [showAnnouncements]);
 
   useEffect(() => {
     let interval: any;
@@ -395,7 +401,7 @@ export default function App() {
           <StitchAgenda 
             readOnly
             segments={agenda} 
-            details={{ theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements }} 
+            details={{ theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements, showMission, showValues, showAnnouncements }} 
             wotd={{ word: wordOfTheDay, meaning: wordMeaning, example: wordExample }} 
             members={members}
           />
@@ -447,9 +453,25 @@ export default function App() {
                             })()}
                           </div>
                        </div>
-                       <div className="flex-1 flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
-                          <Megaphone className="w-4 h-4 text-blue-600 shrink-0"/>
-                          <input value={announcements} onChange={e => setAnnouncements(e.target.value)} placeholder="Main Announcements..." className="bg-transparent border-none focus:outline-none text-sm font-bold text-blue-700 w-full placeholder:text-blue-300"/>
+                       <div className="flex-1 flex flex-col gap-2">
+                         <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
+                            <Megaphone className="w-4 h-4 text-blue-600 shrink-0"/>
+                            <input value={announcements} onChange={e => setAnnouncements(e.target.value)} placeholder="Main Announcements..." className="bg-transparent border-none focus:outline-none text-sm font-bold text-blue-700 w-full placeholder:text-blue-300"/>
+                         </div>
+                         <div className="flex gap-4 items-center pl-2">
+                           <label className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 cursor-pointer">
+                             <input type="checkbox" checked={showAnnouncements} onChange={e => setShowAnnouncements(e.target.checked)} className="rounded text-[#004165] focus:ring-[#004165]" />
+                             Show Announcements
+                           </label>
+                           <label className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 cursor-pointer">
+                             <input type="checkbox" checked={showMission} onChange={e => setShowMission(e.target.checked)} className="rounded text-[#004165] focus:ring-[#004165]" />
+                             Show Mission
+                           </label>
+                           <label className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 cursor-pointer">
+                             <input type="checkbox" checked={showValues} onChange={e => setShowValues(e.target.checked)} className="rounded text-[#004165] focus:ring-[#004165]" />
+                             Show Values
+                           </label>
+                         </div>
                        </div>
                     </div>
                   </div>
@@ -552,7 +574,7 @@ export default function App() {
                   <div className="min-w-fit print:min-w-0 print:w-full">
                     <StitchAgenda 
                       segments={agenda} 
-                      details={{ theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements }} 
+                      details={{ theme, date: meetingDate, time: "19:00", location: "Aloft Playa", sessionNum, announcements, showMission, showValues, showAnnouncements }} 
                       wotd={{ word: wordOfTheDay, meaning: wordMeaning, example: wordExample }} 
                       members={members}
                       onEditSegment={(idx, field, val) => { 

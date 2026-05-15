@@ -36,6 +36,9 @@ export interface MeetingDetails {
   date: string;
   time: string;
   location: string;
+  showMission?: boolean;
+  showValues?: boolean;
+  showAnnouncements?: boolean;
 }
 
 export interface Member {

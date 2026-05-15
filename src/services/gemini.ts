@@ -89,6 +89,7 @@ Title: [Data or TBD]"
 - You MUST EXCLUDE segments for "SPEAKER #2" or "SPEAKER #3" and their "SPEECH EVALUATOR REPORT" if they are not assigned in the Roster Data.
 - If a speaker is vacant, their entire evaluator block must be DELETED from the JSON.
 - Never include placeholder segments like "SPEAKER #2 (---)".
+- INCLUSION OF CUSTOM ROLES: If the ROSTER DATA contains custom roles not explicitly mentioned in the MANDATORY FORMAT above (e.g., "Workshop", "Keynote", or any other custom role), you MUST insert them into the agenda immediately after the speakers, using their specified role name, person assigned, and duration.
 
 **TIME CALCULATION & DISPLAY:**
 - Start Time: 19:00.

@@ -161,6 +161,9 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
     
     const pn = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
     if (pn !== undefined) fields["Project Number"] = toNum(pn);
+    
+    const dur = extraFields.Duration || extraFields.duration || extraFields.latestSpeechDuration;
+    if (dur !== undefined) fields.Duration = dur;
   } else {
     // Roster Table Schema: ["Role", "Name", "Status", "Speech Title", "Pathway", "Level", "Project Number", "Theme", "Word of the Day", etc]
     if (extraFields.Role) fields.Role = extraFields.Role;
@@ -176,6 +179,15 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
     
     const pn = extraFields.Project_Number || extraFields.latestSpeechNumber || extraFields.project_number;
     if (pn !== undefined) fields["Project Number"] = toNum(pn);
+
+    const dur = extraFields.Duration || extraFields.duration;
+    if (dur !== undefined) fields.Duration = dur;
+
+    const intro = extraFields.Intro_Duration || extraFields.intro_duration;
+    if (intro !== undefined) fields["Intro Duration"] = intro;
+
+    const report = extraFields.Report_Duration || extraFields.report_duration;
+    if (report !== undefined) fields["Report Duration"] = report;
 
     const theme = extraFields.Theme || extraFields.theme;
     if (theme !== undefined) fields.Theme = theme;

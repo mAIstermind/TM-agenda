@@ -63,7 +63,8 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
           
           <div className="flex-1 text-right min-w-0">
             <h2 className="text-xl print:text-[12px] font-black uppercase tracking-tight truncate">Inspiring Speakers PDC</h2>
-            <div className="flex justify-end gap-x-2 mt-1 print:mt-0 text-xs font-medium">
+            <div className="text-[10px] print:text-[7px] text-[#F2DF74] tracking-widest font-bold mt-0.5 print:mt-0 leading-none">CLUB 28677134</div>
+            <div className="flex justify-end gap-x-2 mt-1 print:mt-0.5 text-xs font-medium">
               <span className="opacity-60 text-[9px] print:text-[6px] font-black uppercase tracking-widest shrink-0">Theme:</span>
               <input 
                 className={`bg-transparent border-none text-tm-gold font-bold w-full text-right focus:outline-none p-0 italic text-xs ${readOnly ? 'hidden' : 'print:hidden'}`}
@@ -91,7 +92,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="agenda-sidebar w-[180px] print:w-[130px] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
+        <aside className="agenda-sidebar w-[220px] print:w-[155px] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
           <div className="p-6 print:p-3 space-y-6 print:space-y-2">
             <div className="text-center mb-6 print:mb-2 pb-4 print:pb-2 border-b border-white/10">
               <p className="text-[9px] print:text-[6px] uppercase tracking-widest opacity-60 mb-1 print:mb-0">Meeting Date</p>
@@ -143,7 +144,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   value={wotd.word}
                   onChange={(e) => onEditDetail?.('word', e.target.value)}
                 />
-                <div className={`${readOnly ? 'block' : 'hidden print:block'} font-black text-xs print:text-[9px] text-white break-words print:leading-none`}>
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} font-black text-xs print:text-[11px] text-white break-words print:leading-none`}>
                   {wotd.word}
                 </div>
               </div>
@@ -157,7 +158,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[9px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
                   {wotd.meaning}
                 </div>
               </div>
@@ -171,26 +172,39 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                   onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
                   style={{ minHeight: '60px' }}
                 />
-                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[7px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
+                <div className={`${readOnly ? 'block' : 'hidden print:block'} text-[10px] print:text-[9px] italic font-medium leading-tight text-white whitespace-pre-wrap break-words`}>
                   {wotd.example}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-black/40 p-6 print:p-3 space-y-3 print:space-y-1 shrink-0">
-            <h4 className="text-[9px] print:text-[6px] uppercase tracking-[0.3em] font-black text-[#F2DF74] text-center print:leading-none">Announcements</h4>
-            <div className="w-full text-center font-bold text-[10px] print:text-[7px] italic text-slate-200 whitespace-pre-wrap break-words leading-tight print:leading-tight">
-              {details.announcements}
+          {details.showAnnouncements !== false && details.announcements && (
+            <div className="bg-black/40 p-6 print:p-3 space-y-3 print:space-y-1 shrink-0">
+              <h4 className="text-[9px] print:text-[6px] uppercase tracking-[0.3em] font-black text-[#F2DF74] text-center print:leading-none">Announcements</h4>
+              <div className="w-full text-center font-bold text-[10px] print:text-[8px] italic text-slate-200 whitespace-pre-wrap break-words leading-tight print:leading-tight">
+                {details.announcements}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="p-6 print:p-3 shrink-0 border-t border-white/10 mt-auto">
-            <h4 className="text-[8px] print:text-[5px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1 print:mb-0">Toastmasters Core Values</h4>
-            <div className="w-full text-center font-black text-[9px] print:text-[6px] text-[#F2DF74] tracking-wide leading-tight">
-              Integrity, Respect, Service, and Excellence
+          {details.showMission !== false && (
+            <div className="p-6 print:p-3 shrink-0 border-t border-white/10 mt-auto">
+              <h4 className="text-[8px] print:text-[5.5px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1 print:mb-0.5">Club Mission</h4>
+              <div className="w-full text-center font-bold text-[8px] print:text-[6px] text-slate-200 tracking-wide leading-tight">
+                The mission of a Toastmasters club is to provide a mutually supportive and positive learning environment in which every individual member has the opportunity to develop oral communication and leadership skills, which in turn foster self-confidence and personal growth.
+              </div>
             </div>
-          </div>
+          )}
+
+          {details.showValues !== false && (
+            <div className={`p-6 print:p-3 shrink-0 border-t border-white/10 ${details.showMission === false ? 'mt-auto' : ''}`}>
+              <h4 className="text-[8px] print:text-[5.5px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1 print:mb-0.5">Toastmasters Core Values</h4>
+              <div className="w-full text-center font-black text-[9px] print:text-[6.5px] text-[#F2DF74] tracking-wide leading-tight">
+                Integrity, Respect, Service, and Excellence
+              </div>
+            </div>
+          )}
         </aside>
 
         <main className="flex-1 p-5 print:p-2 bg-white agenda-main flex flex-col h-full overflow-hidden">
@@ -213,7 +227,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
                       <span className="block w-full">{seg.time}</span>
                     </td>
                     <td className="text-center py-2 print:py-0.5 w-16 print:w-12 align-top">
-                      <span className="block w-full text-gray-400 print:text-gray-800 font-bold text-[10px] print:text-[6px]">{seg.duration}</span>
+                      <span className="block w-full text-gray-400 print:text-gray-800 font-bold text-[10px] print:text-[9px]">{seg.duration}</span>
                     </td>
                     <td className="px-3 print:px-1 py-2 print:py-0.5 overflow-hidden align-top">
                       {isSpeaker ? (
