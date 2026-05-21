@@ -22,9 +22,34 @@ export const ModernAgenda: React.FC<ModernAgendaProps> = ({ segments, details, w
     'Sergeant at Arms'
   ];
   
+  const hasOfficerRole = (memberRoleStr: string, officerRole: string): boolean => {
+    const normalizedMemberRoles = memberRoleStr
+      .toLowerCase()
+      .split(/[\/&+,]|\band\b/)
+      .map(r => r.trim());
+
+    const normOfficer = officerRole.toLowerCase();
+
+    return normalizedMemberRoles.some(r => {
+      if (normOfficer === 'sergeant at arms') {
+        return r === 'sergeant at arms' || r === 'saa';
+      }
+      if (normOfficer === 'vp education') {
+        return r === 'vp education' || r === 'vpe';
+      }
+      if (normOfficer === 'vp membership') {
+        return r === 'vp membership' || r === 'vpm';
+      }
+      if (normOfficer === 'vp public relations') {
+        return r === 'vp public relations' || r === 'vppr' || r === 'vp pr';
+      }
+      return r === normOfficer || r.includes(normOfficer);
+    });
+  };
+
   const officers = roles.map(role => ({
     role,
-    name: members.find(m => (m.committeeRole || '').toLowerCase().includes(role.toLowerCase()))?.name || '---'
+    name: members.find(m => hasOfficerRole(m.committeeRole || '', role))?.name || '---'
   }));
 
   return (

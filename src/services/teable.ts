@@ -184,10 +184,10 @@ export async function updateMeetingRole(recordId: string, name: string | undefin
     if (dur !== undefined) fields.Duration = dur;
 
     const intro = extraFields.Intro_Duration || extraFields.intro_duration;
-    if (intro !== undefined) fields["Intro Duration"] = intro;
+    if (intro !== undefined) fields["Intro_Duration"] = intro;
 
     const report = extraFields.Report_Duration || extraFields.report_duration;
-    if (report !== undefined) fields["Report Duration"] = report;
+    if (report !== undefined) fields["Report_Duration"] = report;
 
     const theme = extraFields.Theme || extraFields.theme;
     if (theme !== undefined) fields.Theme = theme;

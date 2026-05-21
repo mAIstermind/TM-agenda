@@ -23,6 +23,8 @@ export interface MeetingRole {
   example?: string;
   agenda_json?: string;
   order?: number;
+  sessionNum?: string;
+  announcements?: string;
 }
 
 export interface ClubOfficer {
