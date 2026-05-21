@@ -304,9 +304,14 @@ export default function App() {
     }
     
     setIsLoading(true);
-    await updateMeetingRole(targetId, member.name, extra);
+    const success = await updateMeetingRole(targetId, member.name, extra);
     setIsLoading(false);
-    setModalType(null); refreshData();
+    if (success) {
+      setModalType(null); 
+      refreshData();
+    } else {
+      alert("⚠️ Failed to claim role. Please check your network connection and database configuration.");
+    }
   };
 
   const handleGenerateAgenda = async () => {
