@@ -256,23 +256,28 @@ export async function unassignRole(recordId: string): Promise<boolean> {
 export async function updateMeetingDetails(roster: MeetingRole[], details: any): Promise<boolean> {
   const tmod = roster.find(r => r.role.toLowerCase().includes('toastmaster'));
   const gram = roster.find(r => r.role.toLowerCase().includes('grammarian'));
-  let success = true;
+  
+  const promises: Promise<boolean>[] = [];
+  
   if (tmod) {
-    if (!await updateMeetingRole(tmod.id, tmod.name, { 
+    promises.push(updateMeetingRole(tmod.id, tmod.name, { 
       Theme: details.theme,
       Date: details.date,
       Session: details.sessionNum,
       Announcements: details.announcements
-    })) success = false;
+    }));
   }
   if (gram) {
-    if (!await updateMeetingRole(gram.id, gram.name, {
+    promises.push(updateMeetingRole(gram.id, gram.name, {
       Word_of_the_Day: details.word,
       Word_Meaning: details.meaning,
       Word_Example: details.example
-    })) success = false;
+    }));
   }
-  return success;
+  
+  if (promises.length === 0) return true;
+  const results = await Promise.all(promises);
+  return results.every(res => res === true);
 }
 
 export async function saveAgendaJSON(roster: MeetingRole[], agendaJsonStr: string): Promise<boolean> {

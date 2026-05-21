@@ -164,6 +164,29 @@ export default function App() {
 
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
+  // Unsaved changes & Database tracking
+  const isInitialLoad = React.useRef(true);
+  const [dbDetails, setDbDetails] = useState({
+    theme: '',
+    date: '',
+    sessionNum: '',
+    announcements: '',
+    word: '',
+    meaning: '',
+    example: ''
+  });
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [saveDetailsSuccess, setSaveDetailsSuccess] = useState<boolean | null>(null);
+
+  const hasUnsavedChanges = 
+    theme !== dbDetails.theme ||
+    meetingDate !== dbDetails.date ||
+    sessionNum !== dbDetails.sessionNum ||
+    announcements !== dbDetails.announcements ||
+    wordOfTheDay !== dbDetails.word ||
+    wordMeaning !== dbDetails.meaning ||
+    wordExample !== dbDetails.example;
+
   // Sync to LocalStorage
   useEffect(() => localStorage.setItem('tm_theme', theme), [theme]);
   useEffect(() => localStorage.setItem('tm_date', meetingDate), [meetingDate]);
@@ -180,13 +203,13 @@ export default function App() {
     let interval: any;
     if (window.location.hostname.includes('live')) {
       setIsLiveView(true);
-      interval = setInterval(refreshData, 30000);
+      interval = setInterval(() => refreshData(false), 30000);
     }
-    refreshData();
+    refreshData(false);
     return () => clearInterval(interval);
   }, []);
 
-  const refreshData = async () => {
+  const refreshData = async (forceReload = false) => {
     setIsLoading(true);
     try {
       const [rosterData, membersData] = await Promise.all([ fetchMeetingRoster(), fetchMembers() ]);
@@ -207,26 +230,49 @@ export default function App() {
       setRoster(hydratedRoster);
       setMembers(membersList);
       
+      // Extract latest values from Teable
       const tmod = hydratedRoster.find(r => r.role.toLowerCase().includes('toastmaster'));
-      if (tmod) {
-        if (tmod.theme) setTheme(tmod.theme);
-        if (tmod.date) setMeetingDate(tmod.date);
-        if (tmod.sessionNum) setSessionNum(tmod.sessionNum);
-        if (tmod.announcements) setAnnouncements(tmod.announcements);
-        if (tmod.agenda_json) {
-          try {
-            setAgendaDraft(JSON.parse(tmod.agenda_json));
-          } catch (e) {
-            console.error("Failed to parse saved agenda json", e);
-          }
+      const gram = hydratedRoster.find(r => r.role.toLowerCase().includes('grammarian'));
+      
+      const fetchedDetails = {
+        theme: tmod?.theme || '',
+        date: tmod?.date || '',
+        sessionNum: tmod?.sessionNum || '',
+        announcements: tmod?.announcements || '',
+        word: gram?.wotd || '',
+        meaning: gram?.meaning || '',
+        example: gram?.example || ''
+      };
+      
+      setDbDetails(fetchedDetails);
+
+      if (tmod && tmod.agenda_json) {
+        try {
+          setAgendaDraft(JSON.parse(tmod.agenda_json));
+        } catch (e) {
+          console.error("Failed to parse saved agenda json", e);
         }
       }
-      const gram = hydratedRoster.find(r => r.role.toLowerCase().includes('grammarian'));
-      if (gram) {
-        if (gram.wotd) setWordOfTheDay(gram.wotd);
-        if (gram.meaning) setWordMeaning(gram.meaning);
-        if (gram.example) setWordExample(gram.example);
+
+      // Check if we should update local React state inputs.
+      // We only overwrite local state if it is the initial load, if the user explicitly clicked the force refresh button,
+      // if there are no unsaved changes, or if the user is not actively on the dashboard tab editing.
+      const shouldSyncState = isInitialLoad.current || forceReload || !hasUnsavedChanges || activeTab !== 'dashboard';
+      
+      if (shouldSyncState) {
+        if (fetchedDetails.theme) setTheme(fetchedDetails.theme);
+        if (fetchedDetails.date) setMeetingDate(fetchedDetails.date);
+        if (fetchedDetails.sessionNum) setSessionNum(fetchedDetails.sessionNum);
+        if (fetchedDetails.announcements) setAnnouncements(fetchedDetails.announcements);
+        if (fetchedDetails.word) setWordOfTheDay(fetchedDetails.word);
+        if (fetchedDetails.meaning) setWordMeaning(fetchedDetails.meaning);
+        if (fetchedDetails.example) setWordExample(fetchedDetails.example);
+        
+        // Match dbDetails to the newly synced values
+        setDbDetails(fetchedDetails);
       }
+      
+      isInitialLoad.current = false;
 
       const savedUserId = localStorage.getItem('tm_user_id');
       if (savedUserId && membersData?.length > 0) {
@@ -236,6 +282,36 @@ export default function App() {
       setConnectionError(null);
     } catch (err) { setConnectionError("Offline"); }
     finally { setIsLoading(false); }
+  };
+
+  const saveMeetingDetails = async () => {
+    setIsSavingDetails(true);
+    setSaveDetailsSuccess(null);
+    try {
+      const details = {
+        theme,
+        date: meetingDate,
+        sessionNum,
+        announcements,
+        word: wordOfTheDay,
+        meaning: wordMeaning,
+        example: wordExample
+      };
+      const ok = await updateMeetingDetails(roster, details);
+      if (ok) {
+        setDbDetails(details);
+        setSaveDetailsSuccess(true);
+        setTimeout(() => setSaveDetailsSuccess(null), 3000);
+      } else {
+        setSaveDetailsSuccess(false);
+        alert("⚠️ Save failed. Please check your network connection and database configuration.");
+      }
+    } catch (error) {
+      setSaveDetailsSuccess(false);
+      alert("⚠️ An error occurred while saving meeting details.");
+    } finally {
+      setIsSavingDetails(false);
+    }
   };
 
   const handleClaimRole = async (id: string) => { 
@@ -325,7 +401,11 @@ export default function App() {
       localStorage.setItem('tm_meaning', wordMeaning);
       localStorage.setItem('tm_example', wordExample);
 
-      await updateMeetingDetails(roster, { theme, date: meetingDate, sessionNum, announcements, word: wordOfTheDay, meaning: wordMeaning, example: wordExample });
+      const details = { theme, date: meetingDate, sessionNum, announcements, word: wordOfTheDay, meaning: wordMeaning, example: wordExample };
+      const ok = await updateMeetingDetails(roster, details);
+      if (ok) {
+        setDbDetails(details);
+      }
       
       // Merge member profile data into the roster for better speaker details
       const enrichedRoster = roster.map(r => {
@@ -428,7 +508,14 @@ export default function App() {
                   <div className="space-y-4">
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Meeting Theme</label>
+                        <div className="flex items-center gap-2 mb-1">
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Meeting Theme</label>
+                          {hasUnsavedChanges && (
+                            <span className="text-[9px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 flex items-center gap-1 animate-pulse">
+                              Unsaved Changes
+                            </span>
+                          )}
+                        </div>
                         <input value={theme} onChange={e => setTheme(e.target.value)} className="text-xl md:text-3xl font-black text-slate-800 w-full focus:outline-none bg-transparent"/>
                       </div>
                       <div className="w-20 md:w-24">
@@ -488,7 +575,34 @@ export default function App() {
                       </button>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">do this after you complete the roles</span>
                     </div>
-                    <button onClick={refreshData} className="p-4 bg-slate-100 rounded-2xl text-slate-400 hover:text-[#004165] transition-all"><History/></button>
+
+                    <div className="flex flex-col gap-1">
+                      <button 
+                        onClick={saveMeetingDetails} 
+                        disabled={isSavingDetails} 
+                        className={`px-8 py-4 rounded-2xl font-black flex items-center gap-3 shadow-xl transition-all active:scale-95 ${
+                          hasUnsavedChanges 
+                            ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-amber-200/50' 
+                            : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-default'
+                        }`}
+                      >
+                        {isSavingDetails ? (
+                          <Loader2 className="animate-spin w-5 h-5"/>
+                        ) : saveDetailsSuccess === true ? (
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500"/>
+                        ) : saveDetailsSuccess === false ? (
+                          <AlertTriangle className="w-5 h-5 text-red-500"/>
+                        ) : (
+                          <CheckCircle2 className="w-5 h-5 text-slate-400"/>
+                        )}
+                        {isSavingDetails ? 'Saving...' : saveDetailsSuccess === true ? 'Details Saved!' : hasUnsavedChanges ? 'Save Details' : 'Details Saved'}
+                      </button>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                        {hasUnsavedChanges ? 'You have unsaved changes' : 'All changes saved to cloud'}
+                      </span>
+                    </div>
+
+                    <button onClick={() => refreshData(true)} className="p-4 bg-slate-100 rounded-2xl text-slate-400 hover:text-[#004165] transition-all" title="Force refresh from database"><History/></button>
                   </div>
                 </div>
                 <div className="bg-slate-50 rounded-3xl p-8 space-y-4 border border-slate-100">
