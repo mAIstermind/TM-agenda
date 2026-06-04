@@ -15,11 +15,10 @@ async function check() {
     headers: { 'Authorization': `Bearer ${API_KEY}` }
   });
   const data = await res.json();
-  const tmod = data.records.find(r => r.fields.Role === 'Toastmaster of the Day');
-  const gram = data.records.find(r => r.fields.Role === 'Grammarian');
-  console.log('All Roles:', data.records.map(r => r.fields.Role));
-  console.log('Toastmaster Fields:', tmod?.fields);
-  console.log('Grammarian Fields:', gram?.fields);
+  console.log('Roster Records:');
+  data.records.forEach(r => {
+    console.log(`- Role: "${r.fields.Role}" | Name: "${r.fields.Name}" | Status: "${r.fields.Status}"`);
+  });
 }
 
 check();
