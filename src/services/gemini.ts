@@ -13,7 +13,7 @@ export interface AgendaSegment {
   details?: string;
 }
 
-async function tryProxy(prompt: string, systemInstruction: string, provider: 'openai' | 'gemini' = 'openai'): Promise<string> {
+async function tryProxy(prompt: string, systemInstruction: string, provider: 'openai' | 'gemini' = 'gemini'): Promise<string> {
   const rootUrls = [
     '' // Strictly relative to use middleware tunneling
   ];
@@ -29,6 +29,9 @@ async function tryProxy(prompt: string, systemInstruction: string, provider: 'op
       if (response.ok) {
         const data = await response.json();
         return data.text;
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server returned status ${response.status}`);
       }
     } catch (err) {
       lastError = err;
@@ -81,6 +84,8 @@ Do NOT copy phrases like "DISPLAY DETAILS" or "[Pathway Name]" into the output.
 35. Club President adjourns meeting
 
 **SPEAKER DETAILS TEMPLATE (Use exactly this in 'details' field):**
+- ONLY use this template for "SPEAKER #1", "SPEAKER #2", and "SPEAKER #3" segments.
+- For all other segments (like "GRAMMARIAN INTRO", "TIMER INTRO", "Toastmaster", SAA, GE, Evaluators, custom roles, etc.), the "details" field MUST be "---".
 "Pathway: [Data or TBD]
 Project: [Data or TBD]
 Title: [Data or TBD]"
@@ -93,12 +98,14 @@ Title: [Data or TBD]"
 
 **TIME CALCULATION & DISPLAY:**
 - Start Time: 19:00.
+- Every single agenda item MUST have a calculated start time string in the "time" field (format "HH:MM"). Do NOT leave the "time" field empty for any item.
+- To calculate the start time of the next item, add the duration of the current item to its start time.
 - Speaker Intros (TM introduces speaker #1, etc.): Use "1 min".
-- "Toastmaster Introduces TableTopic Master": Use empty duration ("").
-- "Toastmaster Introduces General Evaluator": Use empty duration ("").
-- "Club President adjourns meeting": Use empty duration ("").
+- "Toastmaster Introduces TableTopic Master": Use empty duration ("") but calculate its start time based on the previous item.
+- "Toastmaster Introduces General Evaluator": Use empty duration ("") but calculate its start time based on the previous item.
+- "Club President adjourns meeting": Use empty duration ("") but calculate its start time based on the previous item.
 - Duration ranges (4-6, 2-3) MUST be written as text in the duration field.
-- Use the MAX value (6, 3) for the time math.
+- Use the MAX value (6, 3) for the time math to calculate the start time of the next item.
 
 **PERFECT EXAMPLE OF OUTPUT:**
 - Segment: "1ST SPEECH EVALUATOR REPORT" | Duration: "2-3 min" | Assigned: "Benjamin Cruz"
@@ -121,7 +128,7 @@ ${confirmed.map(r => {
 `;
 
   try {
-    const text = await tryProxy(prompt, "Return ONLY JSON. No preamble.", 'openai');
+    const text = await tryProxy(prompt, "Return ONLY JSON. No preamble.", 'gemini');
     const cleanText = text.trim().replace(/^```json/, '').replace(/```$/, '');
     const parsed = JSON.parse(cleanText);
     
@@ -131,14 +138,14 @@ ${confirmed.map(r => {
     throw new Error("Invalid AI response format");
   } catch (error: any) {
     console.error("AI Generation Error:", error);
-    throw new Error("AI Proxy failed or is overloaded. Please check Vercel logs.");
+    throw new Error(error.message || "AI Proxy failed. Please check Vercel logs.");
   }
 }
 
 export async function editAgendaWithAI(currentAgenda: AgendaSegment[], instruction: string): Promise<AgendaSegment[]> {
   const prompt = `Modify this agenda: "${instruction}"\nAgenda: ${JSON.stringify(currentAgenda)}\nReturn JSON object with key "agenda" containing the modified array.`;
   try {
-    const text = await tryProxy(prompt, "Return ONLY JSON.", 'openai');
+    const text = await tryProxy(prompt, "Return ONLY JSON.", 'gemini');
     const cleanText = text.trim().replace(/^```json/, '').replace(/```$/, '');
     const parsed = JSON.parse(cleanText);
     

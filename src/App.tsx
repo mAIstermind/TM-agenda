@@ -407,18 +407,19 @@ export default function App() {
         setDbDetails(details);
       }
       
-      // Merge member profile data into the roster for better speaker details
+      // Merge member profile data into the roster ONLY for Speaker roles
       const enrichedRoster = roster.map(r => {
         if (!r.name || r.status !== 'Confirmed') return r;
         const member = members.find(m => m.name === r.name);
         if (!member) return r;
 
+        const isSpeaker = r.role.toLowerCase().includes('speaker');
         return {
           ...r,
-          pathway: r.pathway || member.currentPathway || '',
-          level: r.level || member.currentLevel || '',
-          project_number: r.project_number || member.latestSpeechNumber || '',
-          speech_title: r.speech_title || member.latestSpeechTitle || ''
+          pathway: isSpeaker ? (r.pathway || member.currentPathway || '') : '',
+          level: isSpeaker ? (r.level || member.currentLevel || '') : '',
+          project_number: isSpeaker ? (r.project_number || member.latestSpeechNumber || '') : '',
+          speech_title: isSpeaker ? (r.speech_title || member.latestSpeechTitle || '') : ''
         };
       });
 

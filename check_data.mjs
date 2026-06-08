@@ -15,10 +15,9 @@ async function check() {
     headers: { 'Authorization': `Bearer ${API_KEY}` }
   });
   const data = await res.json();
-  console.log('Roster Records:');
-  data.records.forEach(r => {
-    console.log(`- Role: "${r.fields.Role}" | Name: "${r.fields.Name}" | Status: "${r.fields.Status}"`);
-  });
+  const tmod = data.records.find(r => r.fields.Role.toLowerCase().replace(/\s+/g, '') === 'toastmasteroftheday');
+  console.log('ToastMaster of the Day fields:');
+  console.log(tmod?.fields);
 }
 
 check();
