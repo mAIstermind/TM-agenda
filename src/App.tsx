@@ -33,6 +33,7 @@ import {
   fetchMembers,
   deleteRosterRoles,
   addRosterRole,
+  addRosterRoles,
   deleteRosterRole,
   unassignRole,
   addMember,
@@ -50,6 +51,31 @@ import { StitchAgenda } from './components/StitchAgenda';
 const isSpeakerRole = (roleName: string): boolean => {
   const r = (roleName || '').toLowerCase();
   return r.includes('speaker') && !r.includes('evaluator') && !r.includes('evaluation');
+};
+
+const getRoleOrderWeight = (roleName: string): number => {
+  const r = (roleName || '').toLowerCase();
+  if (r.includes('sergeant') || r.includes('saa')) return 10;
+  if (r.includes('president')) return 20;
+  if (r.includes('toastmaster')) return 30;
+  if (r.includes('general evaluator') || r === 'ge') return 40;
+  if (r.includes('timer')) return 50;
+  if (r.includes('ah-counter') || r.includes('ah counter') || r.includes('ah-count') || r.includes('um & ah')) return 60;
+  if (r.includes('grammarian')) return 70;
+  
+  if (r.includes('table topics') || r.includes('topics master')) return 150;
+  
+  const isEvaluator = r.includes('evaluator') && !r.includes('general');
+  const isSpeaker = isSpeakerRole(roleName);
+  
+  let index = 0;
+  if (r.includes('2nd') || r.includes('2')) index = 1;
+  else if (r.includes('3rd') || r.includes('3')) index = 2;
+  
+  if (isSpeaker) return 80 + index * 20;
+  if (isEvaluator) return 90 + index * 20;
+  
+  return 200; // Custom roles
 };
 
 // --- Components ---
@@ -185,6 +211,8 @@ export default function App() {
   const [showAnnouncements, setShowAnnouncements] = useState(() => localStorage.getItem('tm_show_announcements') !== 'false');
 
   const [connectionError, setConnectionError] = useState<string | null>(null);
+
+  const sortedRoster = [...roster].sort((a, b) => getRoleOrderWeight(a.role) - getRoleOrderWeight(b.role));
 
   // Unsaved changes & Database tracking
   const isInitialLoad = React.useRef(true);
@@ -480,6 +508,60 @@ export default function App() {
     });
   };
 
+  const handlePrepopulateRoles = async () => {
+    setIsLoading(true);
+    try {
+      const standardRoles = [
+        { name: 'Sergeant At Arms ', patterns: ['sergeant', 'saa'] },
+        { name: 'Club President', patterns: ['president'] },
+        { name: 'ToastMaster of the Day', patterns: ['toastmaster'] },
+        { name: 'General Evaluator', patterns: ['general evaluator', 'ge'] },
+        { name: 'Timer', patterns: ['timer'] },
+        { name: 'Um & Ah Counter', patterns: ['ah counter', 'ah-counter', 'ah-count', 'um & ah'] },
+        { name: 'Grammarian', patterns: ['grammarian'] },
+        { name: '1st Speech Evaluator', patterns: ['1st speech evaluator', '1st evaluator', 'speaker evaluator'] },
+        { name: '2nd Speech Evaluator', patterns: ['2nd speech evaluator', '2nd evaluator'] },
+        { name: '3rd Speech Evaluator', patterns: ['3rd speech evaluator', '3rd evaluator'] }
+      ];
+
+      const rolesToAdd: string[] = [];
+
+      for (const std of standardRoles) {
+        const exists = roster.some(r => 
+          std.patterns.some(pat => r.role.toLowerCase().includes(pat))
+        );
+        if (!exists) {
+          rolesToAdd.push(std.name);
+        }
+      }
+
+      const currentSpeakersCount = roster.filter(r => isSpeakerRole(r.role)).length;
+      const speakersNeeded = Math.max(0, 3 - currentSpeakersCount);
+      for (let i = 0; i < speakersNeeded; i++) {
+        rolesToAdd.push('Speaker');
+      }
+
+      if (rolesToAdd.length === 0) {
+        alert("✅ All 13 standard roles are already present in the roster!");
+        return;
+      }
+
+      if (confirm(`This will add ${rolesToAdd.length} missing standard roles to the roster:\n${rolesToAdd.map(r => `• ${r}`).join('\n')}\n\nProceed?`)) {
+        const success = await addRosterRoles(rolesToAdd);
+        if (success) {
+          alert("✅ Standard roles pre-populated successfully!");
+          refreshData();
+        } else {
+          alert("⚠️ Failed to pre-populate roles. Please check connection.");
+        }
+      }
+    } catch (err: any) {
+      alert("Error pre-populating: " + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGenerateAgenda = async () => {
     setIsGenerating(true);
     try {
@@ -724,7 +806,7 @@ export default function App() {
                 </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {roster.map(r => (
+                 {sortedRoster.map(r => (
                    <RoleCard 
                     key={r.id} 
                     role={r} 
@@ -742,13 +824,14 @@ export default function App() {
             <motion.div key="roles" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12 bg-white rounded-[3rem] p-6 md:p-12 shadow-sm border border-slate-100">
               <header className="flex justify-between items-end flex-wrap gap-3">
                 <h2 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tighter">Roles & Directory</h2>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <button onClick={handlePrepopulateRoles} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition-colors">Pre-populate Roles</button>
                   <button onClick={() => setModalType('add-role')} className="px-5 py-2 bg-[#004165] text-white rounded-xl text-xs font-black">+ Role</button>
                   <button onClick={() => setModalType('add-member')} className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black">+ Member</button>
                 </div>
               </header>
               <div className="grid grid-cols-1 gap-4">
-                {roster.map(r => (
+                {sortedRoster.map(r => (
                   <RoleCard 
                     key={r.id} 
                     role={r} 
