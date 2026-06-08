@@ -66,14 +66,19 @@ Do NOT copy phrases like "DISPLAY DETAILS" or "[Pathway Name]" into the output.
 11. Conduct Table Topics Session (Calculate time until 19:50)
 12. 19:50 - 20:00 Comfort Break (10 min)
 13. Toastmaster Restarts Meeting (1 min)
-14. TM invites 1st Speech Evaluator to share objectives (1 min)
-15. Toastmaster introduces speaker #1
-16. Speaker #1: Use the Speaker Details Template below.
-17. [Repeat for Speaker #2 and #3 if they exist]
+14. TM invites 1st Speech Evaluator to share objectives (1 min) - Assign to the person playing "Speaker evaluator" (or "1st Speech Evaluator")
+15. Toastmaster introduces Speaker #1 (1 min)
+16. Speaker #1: Use the Speaker Details Template below - Assign to Speaker #1
+17. [If Speaker #2 exists] TM invites 2nd Speech Evaluator to share objectives (1 min) - Assign to the person playing "2nd Speech Evaluator"
+18. [If Speaker #2 exists] Toastmaster introduces Speaker #2 (1 min)
+19. [If Speaker #2 exists] Speaker #2: Use the Speaker Details Template below - Assign to Speaker #2
+20. [If Speaker #3 exists] TM invites 3rd Speech Evaluator to share objectives (1 min) - Assign to the person playing "3rd Speech Evaluator"
+21. [If Speaker #3 exists] Toastmaster introduces Speaker #3 (1 min)
+22. [If Speaker #3 exists] Speaker #3: Use the Speaker Details Template below - Assign to Speaker #3
 24. GE invites Evaluators to share reports (1 min)
-25. 1st Speech Evaluator report (2-3 min)
-26. 2nd Speech Evaluator report (2-3 min)
-27. 3rd Speech Evaluator report (2-3 min)
+25. 1st Speech Evaluator report (2-3 min) - Assign to the person playing "Speaker evaluator" (or "1st Speech Evaluator")
+26. [If Speaker #2 exists] 2nd Speech Evaluator report (2-3 min) - Assign to the person playing "2nd Speech Evaluator"
+27. [If Speaker #3 exists] 3rd Speech Evaluator report (2-3 min) - Assign to the person playing "3rd Speech Evaluator"
 28. Grammarian report (2-3 min)
 29. Timer report (2-3 min)
 30. Ah-Counter report (2-3 min)
@@ -90,11 +95,26 @@ Do NOT copy phrases like "DISPLAY DETAILS" or "[Pathway Name]" into the output.
 Project: [Data or TBD]
 Title: [Data or TBD]"
 
-**DYNAMIC FILTERING RULES (STRICT):**
-- You MUST EXCLUDE segments for "SPEAKER #2" or "SPEAKER #3" and their "SPEECH EVALUATOR REPORT" if they are not assigned in the Roster Data.
-- If a speaker is vacant, their entire evaluator block must be DELETED from the JSON.
-- Never include placeholder segments like "SPEAKER #2 (---)".
-- INCLUSION OF CUSTOM ROLES: If the ROSTER DATA contains custom roles not explicitly mentioned in the MANDATORY FORMAT above (e.g., "Workshop", "Keynote", or any other custom role), you MUST insert them into the agenda immediately after the speakers, using their specified role name, person assigned, and duration.
+**DYNAMIC FILTERING & ASSIGNMENT RULES (STRICT):**
+- **Speaker and Evaluator Mapping**:
+  - The first speaker in the Roster Data is Speaker #1. Their evaluator in the Roster Data is named "Speaker evaluator".
+  - The second speaker in the Roster Data is Speaker #2. Their evaluator in the Roster Data is named "2nd Speech Evaluator".
+  - The third speaker in the Roster Data is Speaker #3. Their evaluator in the Roster Data is named "3rd Speech Evaluator".
+- **Conditional Speaker Blocks**:
+  - If Speaker #2 is not assigned (vacant or not in Roster Data), you MUST completely exclude:
+    - "TM invites 2nd Speech Evaluator to share objectives"
+    - "Toastmaster introduces Speaker #2"
+    - "Speaker #2"
+    - "2nd Speech Evaluator report"
+  - If Speaker #3 is not assigned, you MUST completely exclude:
+    - "TM invites 3rd Speech Evaluator to share objectives"
+    - "Toastmaster introduces Speaker #3"
+    - "Speaker #3"
+    - "3rd Speech Evaluator report"
+- **Assignment of TM Invites Evaluator**:
+  - You MUST assign the "TM invites 1st/2nd/3rd Speech Evaluator to share objectives" segments directly to the respective Speech Evaluator's name (not the Toastmaster's name).
+- **No Placeholders**: Never include empty or placeholder speaker segments like "SPEAKER #2 (---)".
+- **Inclusion of Custom Roles**: If the Roster Data contains custom roles (e.g., "Workshop", "Keynote", or any other custom role not listed in the standard format), insert them immediately after Speaker #1 (or after Speaker #2/Speaker #3 if they exist), using their role name, person assigned, and duration.
 
 **TIME CALCULATION & DISPLAY:**
 - Start Time: 19:00.

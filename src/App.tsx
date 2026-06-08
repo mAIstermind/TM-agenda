@@ -25,7 +25,8 @@ import {
   AlertTriangle,
   Megaphone,
   Settings2,
-  Timer as TimerIcon
+  Timer as TimerIcon,
+  ClipboardList
 } from 'lucide-react';
 import { 
   fetchMeetingRoster,
@@ -47,12 +48,26 @@ import { StitchAgenda } from './components/StitchAgenda';
 
 // --- Components ---
 
-const TopBar = ({ connectionError }: { connectionError: string | null }) => (
+const NumberBadge = ({ num }: { num: number }) => (
+  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-black shadow-xs shrink-0 select-none">
+    {num}
+  </span>
+);
+
+const TopBar = ({ connectionError, onOpenChecklist }: { connectionError: string | null, onOpenChecklist: () => void }) => (
   <header className="fixed top-0 left-0 w-full z-50 flex flex-col md:flex-row justify-between items-start md:items-end px-4 md:px-8 pt-4 md:pt-8 pb-3 md:pb-4 bg-slate-50/80 backdrop-blur-xl border-b border-slate-100 no-print">
     <div className="space-y-1">
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-        <span className="text-xs font-bold tracking-[0.2em] uppercase text-emerald-600">TM-PRO v2.8 (TITANIUM STABILITY)</span>
+        <span className="text-xs font-bold tracking-[0.2em] uppercase text-emerald-600 flex items-center">TM-PRO v2.8 (TITANIUM STABILITY)</span>
+        <button 
+          onClick={onOpenChecklist} 
+          className="ml-4 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-black rounded-lg border border-blue-200 shadow-sm flex items-center gap-1 transition-colors cursor-pointer"
+          title="Open Toastmaster Checklist"
+        >
+          <ClipboardList className="w-3 h-3" />
+          Checklist
+        </button>
       </div>
       <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-slate-800">Inspiring Speakers PDC</h1>
     </div>
@@ -144,6 +159,7 @@ export default function App() {
   const [isChatting, setIsChatting] = useState(false);
   const [showAssistant, setShowAssistant] = useState(true);
   const [isLiveView, setIsLiveView] = useState(false);
+  const [showChecklistModal, setShowChecklistModal] = useState(false);
   
   // Modals state
   const [modalType, setModalType] = useState<'claim' | 'add-role' | 'edit-role' | 'add-member' | 'edit-member' | null>(null);
@@ -498,7 +514,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-32">
-      <TopBar connectionError={connectionError} />
+      <TopBar connectionError={connectionError} onOpenChecklist={() => setShowChecklistModal(true)} />
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-28 md:pt-32">
         <AnimatePresence mode="wait">
@@ -510,6 +526,7 @@ export default function App() {
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
+                          <NumberBadge num={1} />
                           <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Meeting Theme</label>
                           {hasUnsavedChanges && (
                             <span className="text-[9px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 flex items-center gap-1 animate-pulse">
@@ -519,20 +536,27 @@ export default function App() {
                         </div>
                         <input value={theme} onChange={e => setTheme(e.target.value)} className="text-xl md:text-3xl font-black text-slate-800 w-full focus:outline-none bg-transparent"/>
                       </div>
-                      <div className="w-20 md:w-24">
-                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Session</label>
+                      <div className="w-24 md:w-28">
+                        <div className="flex items-center gap-2 mb-1">
+                          <NumberBadge num={2} />
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Session</label>
+                        </div>
                         <input value={sessionNum} onChange={e => setSessionNum(e.target.value)} className="text-xl md:text-3xl font-black text-blue-600 w-full focus:outline-none bg-transparent"/>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-6">
-                       <div className="flex items-center gap-2">
-                          <CalendarDays className="w-4 h-4 text-[#004165]"/>
+                       <div className="flex items-center gap-3">
+                          <CalendarDays className="w-5 h-5 text-[#004165] shrink-0 mt-3"/>
                           <div className="flex flex-col">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <NumberBadge num={3} />
+                              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Meeting Date</label>
+                            </div>
                             <input 
                               type="date" 
                               value={meetingDate} 
                               onChange={e => setMeetingDate(e.target.value)} 
-                              className="font-bold text-slate-400 focus:outline-none bg-transparent text-sm border-none p-0 cursor-pointer"
+                              className="font-bold text-slate-450 focus:outline-none bg-transparent text-sm border-none p-0 cursor-pointer"
                             />
                             {meetingDate && (() => {
                               const parts = meetingDate.split('-');
@@ -571,6 +595,7 @@ export default function App() {
                   <div className="pt-6 border-t border-slate-100 flex gap-4 flex-wrap items-center">
                     <div className="flex flex-col gap-1">
                       <button onClick={handleGenerateAgenda} disabled={isGenerating} className="px-8 py-4 bg-[#004165] text-white rounded-2xl font-black flex items-center gap-3 shadow-xl hover:bg-blue-900 transition-all active:scale-95">
+                        <span className="w-5 h-5 rounded-full bg-white text-[#004165] flex items-center justify-center text-[10px] font-black shadow-xs shrink-0 select-none">6</span>
                         {isGenerating ? <Loader2 className="animate-spin w-5 h-5"/> : <Sparkles className="w-5 h-5"/>}
                         Generate Agenda
                       </button>
@@ -607,13 +632,22 @@ export default function App() {
                   </div>
                 </div>
                 <div className="bg-slate-50 rounded-3xl p-8 space-y-4 border border-slate-100">
-                  <h3 className="italic text-lg font-black text-[#004165]">Word of the Day</h3>
+                  <h3 className="italic text-lg font-black text-[#004165] flex items-center gap-2">
+                    <NumberBadge num={4} />
+                    Word of the Day
+                  </h3>
                   <div className="space-y-3">
                     <input value={wordOfTheDay} onChange={e => setWordOfTheDay(e.target.value)} className="font-black text-sm bg-white rounded-xl px-4 py-2 w-full shadow-sm" placeholder="Word"/>
                     <textarea value={wordMeaning} onChange={e => setWordMeaning(e.target.value)} className="text-xs italic bg-white rounded-xl px-4 py-2 w-full shadow-sm resize-none" rows={3} placeholder="Definition"/>
                     <textarea value={wordExample} onChange={e => setWordExample(e.target.value)} className="text-xs italic bg-white rounded-xl px-4 py-2 w-full shadow-sm resize-none" rows={3} placeholder="Example"/>
                   </div>
                 </div>
+              </div>
+              <div className="flex justify-between items-center pt-4 mb-2">
+                <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                  <NumberBadge num={5} />
+                  Roster & Roles
+                </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                  {roster.map(r => (
@@ -950,6 +984,117 @@ export default function App() {
           <button onClick={async () => { if(!inputData.name) return; setIsLoading(true); await addMember(inputData.name, inputData.role); setIsLoading(false); setModalType(null); refreshData(); }} className="w-full py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl">Add to Directory</button>
         </div>
       </Modal>
+
+      <AnimatePresence>
+        {showChecklistModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setShowChecklistModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            
+            {/* Modal container */}
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.95, opacity: 0, y: 20 }} 
+              className="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-2xl border border-slate-100 max-w-2xl w-full relative max-h-[85vh] overflow-y-auto z-10"
+            >
+              <button 
+                onClick={() => setShowChecklistModal(false)} 
+                className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-full transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
+                    <ClipboardList className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">Toastmaster Checklist</h2>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Before you generate the agenda</p>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-6 space-y-4">
+                  <p className="text-sm font-semibold text-slate-500">Ensure the following details are prepared on the dashboard:</p>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { num: 1, label: "Meeting Theme", desc: "Define the theme/tone of the Toastmasters session." },
+                      { num: 2, label: "Session Number", desc: "Confirm it matches the sequential count of the club meetings." },
+                      { num: 3, label: "Meeting Date", desc: "Check that the scheduled date matches your target session." },
+                      { num: 4, label: "Word of the Day", desc: "Specify a word, its lexical definition, and a usage example." },
+                      { num: 5, label: "Roster Roles", desc: "Assign members to roles. Ensure speaker details are up to date." }
+                    ].map(item => (
+                      <div key={item.num} className="flex gap-4 p-3 hover:bg-slate-50 rounded-2xl transition-all">
+                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">{item.num}</span>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-800">{item.label}</h4>
+                          <p className="text-xs text-slate-400 font-semibold">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Speakers Section */}
+                <div className="border-t border-slate-100 pt-6 space-y-3">
+                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Active Speakers & Allocated Time</h3>
+                  <div className="bg-slate-50 rounded-2xl p-5 space-y-3">
+                    {roster.filter(r => r.role.toLowerCase().includes('speaker') && r.status === 'Confirmed').length === 0 ? (
+                      <p className="text-xs text-slate-400 font-semibold italic">No confirmed speakers in roster.</p>
+                    ) : (
+                      roster.filter(r => r.role.toLowerCase().includes('speaker') && r.status === 'Confirmed').map((s, idx) => {
+                        const memberMatch = members.find(m => m.name === s.name);
+                        const pathway = s.pathway || memberMatch?.currentPathway || '---';
+                        const level = s.level || memberMatch?.currentLevel ? `Level ${s.level || memberMatch?.currentLevel}` : '---';
+                        const title = s.speech_title || memberMatch?.latestSpeechTitle || '---';
+                        const duration = s.duration || (s.level === '1' ? '4-6 min' : '5-7 min');
+                        return (
+                          <div key={s.id} className="flex justify-between items-start border-b border-slate-100 last:border-0 pb-3 last:pb-0">
+                            <div>
+                              <p className="text-xs font-black text-[#004165] uppercase">Speaker #{idx + 1}: {s.name}</p>
+                              <p className="text-[11px] font-bold text-slate-500">
+                                {pathway !== '---' || level !== '---' ? `${pathway} (${level})` : 'No Pathway details'}
+                              </p>
+                              <p className="text-[11px] italic text-[#772432] font-semibold">"{title}"</p>
+                            </div>
+                            <span className="text-xs font-bold bg-blue-100/60 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-100">
+                              {duration.includes('min') ? duration : `${duration} min`}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* AI Assistant Info */}
+                <div className="border-t border-slate-100 pt-6">
+                  <div className="bg-slate-900 text-slate-300 rounded-2xl p-5 space-y-3 flex items-start gap-4">
+                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0 text-white mt-1 shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                      <MessageSquare className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-white tracking-wider">AI Assistant Chatbot</h4>
+                      <p className="text-[11px] leading-relaxed text-slate-400 font-medium">
+                        Unusual discrepancies or custom changes can be handled after generation by typing instructions to the **AI Assistant chatbot**. It supports **any preferred language** and is found in the right sidebar under the **Agenda** tab.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
