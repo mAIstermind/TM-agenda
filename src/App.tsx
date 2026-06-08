@@ -46,6 +46,12 @@ import { generateMeetingAgenda, editAgendaWithAI, AgendaSegment } from './servic
 import { MeetingRole, Member } from './types';
 import { StitchAgenda } from './components/StitchAgenda';
 
+// --- Helper functions ---
+const isSpeakerRole = (roleName: string): boolean => {
+  const r = (roleName || '').toLowerCase();
+  return r.includes('speaker') && !r.includes('evaluator') && !r.includes('evaluation');
+};
+
 // --- Components ---
 
 const NumberBadge = ({ num }: { num: number }) => (
@@ -110,7 +116,7 @@ const RoleCard = ({ role, onClaim, onEdit, onDelete, onUnassign, showDuration }:
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${
           role.status === 'Confirmed' ? 'bg-[#004165] text-white shadow-lg' : 'bg-slate-200 text-slate-400'
         }`}>
-          {role.role.toLowerCase().includes('speaker') ? <Users className="w-6 h-6" /> : <BarChart3 className="w-6 h-6" />}
+          {isSpeakerRole(role.role) ? <Users className="w-6 h-6" /> : <BarChart3 className="w-6 h-6" />}
         </div>
         <div>
           <div className="flex items-center gap-2">
@@ -388,7 +394,7 @@ export default function App() {
     localStorage.setItem(`tm_intro_${targetId}`, intro);
     localStorage.setItem(`tm_report_${targetId}`, report);
 
-    if (rName.includes('speaker')) {
+    if (isSpeakerRole(role.role)) {
       const isIcebreaker = !member.latestSpeechNumber || member.latestSpeechNumber === '0';
       extra.Duration = role.duration || (isIcebreaker ? '4-6' : '5-7');
       extra.Speech_Title = member.latestSpeechTitle || ""; extra.Pathway = member.currentPathway || "";
@@ -404,6 +410,74 @@ export default function App() {
     } else {
       alert("⚠️ Failed to claim role. Please check your network connection and database configuration.");
     }
+  };
+
+  const getStandardRolesStatus = () => {
+    const definitions = [
+      { key: 'saa', label: 'Sergeant At Arms', isMandatory: true, matchPatterns: ['sergeant', 'saa'] },
+      { key: 'president', label: 'Club President', isMandatory: false, matchPatterns: ['president'] },
+      { key: 'toastmaster', label: 'Toastmaster of the Day', isMandatory: true, matchPatterns: ['toastmaster'] },
+      { key: 'ge', label: 'General Evaluator', isMandatory: true, matchPatterns: ['general evaluator', 'ge'] },
+      { key: 'timer', label: 'Timer', isMandatory: true, matchPatterns: ['timer'] },
+      { key: 'ah_counter', label: 'Ah-Counter', isMandatory: true, matchPatterns: ['ah counter', 'ah-counter', 'ah-count', 'um & ah'] },
+      { key: 'grammarian', label: 'Grammarian', isMandatory: true, matchPatterns: ['grammarian'] },
+      { key: 'speaker_1', label: 'Speaker 1', isMandatory: true, isSpeaker: true, speakerIndex: 0 },
+      { key: 'speaker_2', label: 'Speaker 2', isMandatory: false, isSpeaker: true, speakerIndex: 1 },
+      { key: 'speaker_3', label: 'Speaker 3', isMandatory: false, isSpeaker: true, speakerIndex: 2 },
+      { key: 'evaluator_1', label: '1st Speech Evaluator', isMandatory: true, isEvaluator: true, evaluatorIndex: 0 },
+      { key: 'evaluator_2', label: '2nd Speech Evaluator', isMandatory: false, isEvaluator: true, evaluatorIndex: 1 },
+      { key: 'evaluator_3', label: '3rd Speech Evaluator', isMandatory: false, isEvaluator: true, evaluatorIndex: 2 }
+    ];
+
+    const speakers = roster.filter(r => isSpeakerRole(r.role));
+    const evaluators = roster.filter(r => r.role.toLowerCase().includes('evaluator') && !r.role.toLowerCase().includes('general'));
+
+    const getIndexFromRoleName = (name: string) => {
+      const lower = name.toLowerCase();
+      if (lower.includes('1st') || lower.includes('1')) return 0;
+      if (lower.includes('2nd') || lower.includes('2')) return 1;
+      if (lower.includes('3rd') || lower.includes('3')) return 2;
+      return -1;
+    };
+
+    return definitions.map(def => {
+      let matchedRole: MeetingRole | undefined;
+
+      if (def.isSpeaker) {
+        matchedRole = speakers.find(s => getIndexFromRoleName(s.role) === def.speakerIndex);
+        if (!matchedRole && def.speakerIndex === 0) {
+          matchedRole = speakers.find(s => getIndexFromRoleName(s.role) === -1);
+        }
+        if (!matchedRole && speakers.length > def.speakerIndex) {
+          matchedRole = speakers[def.speakerIndex];
+        }
+      } else if (def.isEvaluator) {
+        matchedRole = evaluators.find(e => getIndexFromRoleName(e.role) === def.evaluatorIndex);
+        if (!matchedRole && def.evaluatorIndex === 0) {
+          matchedRole = evaluators.find(e => getIndexFromRoleName(e.role) === -1 || e.role.toLowerCase() === 'speaker evaluator');
+        }
+        if (!matchedRole && evaluators.length > def.evaluatorIndex) {
+          matchedRole = evaluators[def.evaluatorIndex];
+        }
+      } else {
+        matchedRole = roster.find(r => 
+          def.matchPatterns?.some(pat => {
+            const rLower = r.role.toLowerCase();
+            if (pat === 'ge') return rLower === 'ge';
+            if (pat === 'saa') return rLower === 'saa';
+            return rLower.includes(pat);
+          })
+        );
+      }
+
+      return {
+        label: def.label,
+        isMandatory: def.isMandatory,
+        name: matchedRole?.status === 'Confirmed' ? matchedRole.name : '',
+        status: matchedRole?.status || 'Vacant',
+        roleInRoster: matchedRole?.role || def.label
+      };
+    });
   };
 
   const handleGenerateAgenda = async () => {
@@ -429,7 +503,7 @@ export default function App() {
         const member = members.find(m => m.name === r.name);
         if (!member) return r;
 
-        const isSpeaker = r.role.toLowerCase().includes('speaker');
+        const isSpeaker = isSpeakerRole(r.role);
         return {
           ...r,
           pathway: isSpeaker ? (r.pathway || member.currentPathway || '') : '',
@@ -792,13 +866,13 @@ export default function App() {
                          setIsLoading(true);
                          const ok = await updateMeetingRole(currentUser.id, undefined, { 
                            Pathway: currentUser.currentPathway,
-                           Level: currentUser.currentLevel,
+                         Level: currentUser.currentLevel,
                            Project_Number: currentUser.latestSpeechNumber,
                            Speech_Title: currentUser.latestSpeechTitle
                          }, true); 
 
                          // Sync to Roster Roles if assigned
-                         const mySpeakerRoles = roster.filter(r => r.name === currentUser.name && r.role.toLowerCase().includes('speaker'));
+                         const mySpeakerRoles = roster.filter(r => r.name === currentUser.name && isSpeakerRole(r.role));
                          for (const role of mySpeakerRoles) {
                            await updateMeetingRole(role.id, undefined, {
                              Pathway: currentUser.currentPathway,
@@ -888,7 +962,7 @@ export default function App() {
              </div>
           </div>
 
-          {inputData.title?.toLowerCase().includes('speaker') && (
+          {isSpeakerRole(inputData.title || '') && (
             <div className="bg-orange-50 p-6 rounded-3xl space-y-4 border border-orange-100">
                <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2"><Sparkles className="w-3 h-3"/> Speaker Details</p>
                <div className="grid grid-cols-2 gap-3">
@@ -913,7 +987,7 @@ export default function App() {
               Report_Duration: inputData.report_duration 
             };
 
-            if (inputData.title?.toLowerCase().includes('speaker')) {
+            if (isSpeakerRole(inputData.title || '')) {
               extra.Pathway = inputData.pathway;
               extra.Level = inputData.level;
               extra.Project_Number = inputData.project_number;
@@ -929,7 +1003,7 @@ export default function App() {
 
             // Sync back to Profile
             const currentRole = roster.find(r => r.id === targetId);
-            if (response === true && currentRole && currentRole.name && inputData.title?.toLowerCase().includes('speaker')) {
+            if (response === true && currentRole && currentRole.name && isSpeakerRole(inputData.title || '')) {
                const assignedMember = members.find(m => m.name === currentRole.name);
                if (assignedMember) {
                  await updateMeetingRole(assignedMember.id, undefined, {
@@ -1044,14 +1118,49 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Standard Roles Checklist */}
+                <div className="border-t border-slate-100 pt-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Standard Roles Status</h3>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">13 Club Roles</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[30vh] overflow-y-auto pr-1">
+                    {getStandardRolesStatus().map((role, idx) => {
+                      const isConfirmed = role.status === 'Confirmed' && role.name;
+                      const badgeClass = isConfirmed
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : role.isMandatory
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-slate-100 text-slate-400 border border-slate-200";
+
+                      return (
+                        <div key={idx} className="flex justify-between items-center p-3 bg-slate-50/50 hover:bg-slate-50 rounded-2xl border border-slate-100/80 transition-all">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${role.isMandatory ? 'bg-amber-500' : 'bg-slate-300'}`} title={role.isMandatory ? 'Mandatory Role' : 'Optional Role'}></span>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-700 leading-tight truncate">{role.label}</p>
+                              {isConfirmed && role.roleInRoster !== role.label && (
+                                <p className="text-[9px] text-slate-400 font-bold uppercase leading-none mt-0.5 truncate">{role.roleInRoster}</p>
+                              )}
+                            </div>
+                          </div>
+                          <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider truncate max-w-[150px] ${badgeClass}`}>
+                            {isConfirmed ? role.name : role.isMandatory ? 'Vacant' : 'Vacant (Opt)'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Speakers Section */}
                 <div className="border-t border-slate-100 pt-6 space-y-3">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Active Speakers & Allocated Time</h3>
                   <div className="bg-slate-50 rounded-2xl p-5 space-y-3">
-                    {roster.filter(r => r.role.toLowerCase().includes('speaker') && r.status === 'Confirmed').length === 0 ? (
+                    {roster.filter(r => isSpeakerRole(r.role) && r.status === 'Confirmed').length === 0 ? (
                       <p className="text-xs text-slate-400 font-semibold italic">No confirmed speakers in roster.</p>
                     ) : (
-                      roster.filter(r => r.role.toLowerCase().includes('speaker') && r.status === 'Confirmed').map((s, idx) => {
+                      roster.filter(r => isSpeakerRole(r.role) && r.status === 'Confirmed').map((s, idx) => {
                         const memberMatch = members.find(m => m.name === s.name);
                         const pathway = s.pathway || memberMatch?.currentPathway || '---';
                         const level = s.level || memberMatch?.currentLevel ? `Level ${s.level || memberMatch?.currentLevel}` : '---';
