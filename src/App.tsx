@@ -130,8 +130,8 @@ const RoleCard = ({ role, onClaim, onEdit, onDelete, onUnassign, showDuration }:
   showDuration?: boolean
 }) => {
   // Local hybrid storage for durations
-  const intro = role.intro_duration || localStorage.getItem(`tm_intro_${role.id}`) || '';
-  const report = role.report_duration || localStorage.getItem(`tm_report_${role.id}`) || '';
+  const intro = role.intro_duration || '';
+  const report = role.report_duration || '';
   
   return (
     <div className={`group flex items-center justify-between p-5 rounded-[2rem] transition-all hover:translate-y-[-2px] ${
@@ -272,8 +272,8 @@ export default function App() {
         return {
           ...r,
           name: memberMatch ? memberMatch.name : r.name,
-          intro_duration: r.intro_duration || localStorage.getItem(`tm_intro_${r.id}`) || '',
-          report_duration: r.report_duration || localStorage.getItem(`tm_report_${r.id}`) || ''
+          intro_duration: r.intro_duration || '',
+          report_duration: r.report_duration || ''
         };
       });
       
