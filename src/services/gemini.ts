@@ -97,9 +97,9 @@ Title: [Data or TBD]"
 
 **DYNAMIC FILTERING & ASSIGNMENT RULES (STRICT):**
 - **Speaker and Evaluator Mapping**:
-  - The first speaker in the Roster Data is Speaker #1. Their evaluator in the Roster Data is named "Speaker evaluator".
-  - The second speaker in the Roster Data is Speaker #2. Their evaluator in the Roster Data is named "2nd Speech Evaluator".
-  - The third speaker in the Roster Data is Speaker #3. Their evaluator in the Roster Data is named "3rd Speech Evaluator".
+  - The first speaker in the Roster Data (whose role may be named "Speaker" or "1st Speaker") is Speaker #1. Their evaluator in the Roster Data is named "Speaker evaluator" or "1st Speech Evaluator".
+  - The second speaker in the Roster Data (whose role may be named "Speaker" or "2nd Speaker") is Speaker #2. Their evaluator in the Roster Data is named "2nd Speech Evaluator".
+  - The third speaker in the Roster Data (whose role may be named "Speaker" or "3rd Speaker") is Speaker #3. Their evaluator in the Roster Data is named "3rd Speech Evaluator".
 - **Conditional Speaker Blocks**:
   - If Speaker #2 is not assigned (vacant or not in Roster Data), you MUST completely exclude:
     - "TM invites 2nd Speech Evaluator to share objectives"

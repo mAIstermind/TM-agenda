@@ -212,7 +212,22 @@ export default function App() {
 
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
-  const sortedRoster = [...roster].sort((a, b) => getRoleOrderWeight(a.role) - getRoleOrderWeight(b.role));
+  const getDisplayRoleName = (roleName: string, id: string) => {
+    const rLower = (roleName || '').toLowerCase();
+    if (rLower === 'speaker') {
+      const speakerRoles = roster.filter(r => r.role.toLowerCase() === 'speaker');
+      const idx = speakerRoles.findIndex(r => r.id === id);
+      if (idx === 0) return '1st Speaker';
+      if (idx === 1) return '2nd Speaker';
+      if (idx === 2) return '3rd Speaker';
+      return `${idx + 1}th Speaker`;
+    }
+    return roleName;
+  };
+
+  const sortedRoster = [...roster]
+    .map(r => ({ ...r, role: getDisplayRoleName(r.role, r.id) }))
+    .sort((a, b) => getRoleOrderWeight(a.role) - getRoleOrderWeight(b.role));
 
   // Unsaved changes & Database tracking
   const isInitialLoad = React.useRef(true);
@@ -449,9 +464,9 @@ export default function App() {
       { key: 'timer', label: 'Timer', isMandatory: true, matchPatterns: ['timer'] },
       { key: 'ah_counter', label: 'Ah-Counter', isMandatory: true, matchPatterns: ['ah counter', 'ah-counter', 'ah-count', 'um & ah'] },
       { key: 'grammarian', label: 'Grammarian', isMandatory: true, matchPatterns: ['grammarian'] },
-      { key: 'speaker_1', label: 'Speaker 1', isMandatory: true, isSpeaker: true, speakerIndex: 0 },
-      { key: 'speaker_2', label: 'Speaker 2', isMandatory: false, isSpeaker: true, speakerIndex: 1 },
-      { key: 'speaker_3', label: 'Speaker 3', isMandatory: false, isSpeaker: true, speakerIndex: 2 },
+      { key: 'speaker_1', label: '1st Speaker', isMandatory: true, isSpeaker: true, speakerIndex: 0 },
+      { key: 'speaker_2', label: '2nd Speaker', isMandatory: false, isSpeaker: true, speakerIndex: 1 },
+      { key: 'speaker_3', label: '3rd Speaker', isMandatory: false, isSpeaker: true, speakerIndex: 2 },
       { key: 'evaluator_1', label: '1st Speech Evaluator', isMandatory: true, isEvaluator: true, evaluatorIndex: 0 },
       { key: 'evaluator_2', label: '2nd Speech Evaluator', isMandatory: false, isEvaluator: true, evaluatorIndex: 1 },
       { key: 'evaluator_3', label: '3rd Speech Evaluator', isMandatory: false, isEvaluator: true, evaluatorIndex: 2 }
@@ -538,7 +553,9 @@ export default function App() {
       const currentSpeakersCount = roster.filter(r => isSpeakerRole(r.role)).length;
       const speakersNeeded = Math.max(0, 3 - currentSpeakersCount);
       for (let i = 0; i < speakersNeeded; i++) {
-        rolesToAdd.push('Speaker');
+        const nextIndex = currentSpeakersCount + i + 1;
+        const suffix = nextIndex === 1 ? '1st' : nextIndex === 2 ? '2nd' : '3rd';
+        rolesToAdd.push(`${suffix} Speaker`);
       }
 
       if (rolesToAdd.length === 0) {
