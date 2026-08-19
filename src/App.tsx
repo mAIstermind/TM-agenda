@@ -863,23 +863,36 @@ export default function App() {
               
               <div className="mt-20 pt-20 border-t border-slate-100">
                 <h3 className="text-3xl font-black text-slate-800 tracking-tighter uppercase mb-10">Club Directory</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {members.map(m => (
-                    <div key={m.id} className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 group relative transition-all hover:bg-white hover:shadow-xl">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[#004165] rounded-2xl flex items-center justify-center text-white font-black text-xl">{m.name[0]}</div>
-                        <div>
-                          <p className="font-black text-slate-800 text-base">{m.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">{m.committeeRole || 'Member'}</p>
-                        </div>
-                      </div>
-                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={async () => { await refreshData(); setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><Edit2 className="w-4 h-4"/></button>
-                        <button onClick={async () => { if(confirm(`Remove ${m.name}?`)) { const success = await deleteMember(m.id); if(success) refreshData(); else alert("Failed to delete."); } }} className="p-2 bg-white rounded-xl shadow-sm text-red-600"><Trash2 className="w-4 h-4"/></button>
-                      </div>
+                {(() => {
+                  const nameCount: Record<string, number> = {};
+                  members.forEach(m => { const key = (m.name || '').trim().toLowerCase(); nameCount[key] = (nameCount[key] || 0) + 1; });
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {members.map(m => {
+                        const dupKey = (m.name || '').trim().toLowerCase();
+                        const isDuplicate = nameCount[dupKey] > 1;
+                        return (
+                          <div key={m.id} className={`p-6 rounded-[2rem] border relative transition-all hover:shadow-xl ${isDuplicate ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-100 hover:bg-white'}`}>
+                            {isDuplicate && (
+                              <span className="absolute -top-2 left-4 px-2 py-0.5 bg-amber-500 text-white text-[9px] font-black uppercase rounded-full shadow-sm">Duplicate</span>
+                            )}
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-[#004165] rounded-2xl flex items-center justify-center text-white font-black text-xl">{m.name[0]}</div>
+                              <div>
+                                <p className="font-black text-slate-800 text-base">{m.name}</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">{m.committeeRole || 'Member'}</p>
+                              </div>
+                            </div>
+                            <div className="absolute top-4 right-4 flex gap-2">
+                              <button onClick={async () => { await refreshData(); setTargetId(m.id); setInputData({ name: m.name, role: m.committeeRole }); setModalType('edit-member'); }} className="p-2 bg-white rounded-xl shadow-sm text-blue-600 hover:bg-blue-50" title="Edit Member"><Edit2 className="w-4 h-4"/></button>
+                              <button onClick={async () => { if(confirm(`Remove ${m.name}? This permanently deletes this member record from the directory.`)) { const success = await deleteMember(m.id); if(success) refreshData(); else alert("Failed to delete."); } }} className="p-2 bg-white rounded-xl shadow-sm text-red-600 hover:bg-red-50" title="Delete Member"><Trash2 className="w-4 h-4"/></button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
               </div>
             </motion.div>
           )}
