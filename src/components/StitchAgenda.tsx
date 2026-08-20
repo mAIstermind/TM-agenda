@@ -68,7 +68,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
   return (
     <div className="bg-white shadow-2xl border border-gray-200 font-['Montserrat',sans-serif] mx-auto print:shadow-none print:border-none print:m-0 print-page printable-area flex flex-col h-full" 
          id="agenda-page">
-      <header className="bg-[#004165] text-white p-5 print:p-3 print:bg-[#004165] print:text-white relative shrink-0 agenda-header">
+      <header className="bg-[#004165] text-white p-4 print:p-2 print:bg-[#004165] print:text-white relative shrink-0 agenda-header">
         <div className="flex justify-between items-center gap-8 print:gap-4">
           <div className="flex items-center gap-6 shrink-0 print:gap-4">
             <img alt="TM Logo" className="h-16 w-auto object-contain print:h-12" src={logoFinal}/>
@@ -144,7 +144,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
       <div className="flex flex-1 overflow-hidden w-full">
         {/* Sidebar set to exactly 33% width */}
         <aside className="agenda-sidebar w-[33%] bg-[#772432] text-white flex-shrink-0 flex flex-col print:bg-[#772432]">
-          <div className="p-6 print:p-4 space-y-6 print:space-y-4">
+          <div className="p-4 print:p-3 space-y-4 print:space-y-3">
             <div className="space-y-4 print:space-y-3">
               <p className="text-xs print:text-[10px] font-black uppercase tracking-widest text-[#F2DF74] text-center pb-1 border-b border-white/10">Club Officers</p>
               <div className="grid grid-cols-1 gap-2.5 print:gap-1.5">
@@ -164,7 +164,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
             </div>
           </div>
 
-          <div className="bg-black/20 p-6 print:p-4 space-y-4 print:space-y-3 flex-1">
+          <div className="bg-black/20 p-4 print:p-3 space-y-3 print:space-y-2 flex-1">
             <h3 className="italic text-xl print:text-[18px] font-black text-[#F2DF74] print:leading-none">Word of the Day</h3>
             <div className="space-y-4 print:space-y-3">
               <div>
@@ -210,7 +210,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
           </div>
 
           {details.showMission !== false && (
-            <div className="p-6 print:p-4 shrink-0 border-t border-white/10 mt-auto">
+            <div className="p-3 print:p-2 shrink-0 border-t border-white/10 mt-auto">
               <h4 className="text-[10px] print:text-[9px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1 print:mb-0.5">Club Mission</h4>
               <div className="w-full text-center font-bold text-xs print:text-[10.5px] text-slate-200 tracking-wide leading-tight">
                 The mission of a Toastmasters club is to provide a mutually supportive and positive learning environment in which every individual member has the opportunity to develop oral communication and leadership skills, which in turn foster self-confidence and personal growth.
@@ -219,7 +219,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
           )}
 
           {details.showValues !== false && (
-            <div className={`p-6 print:p-4 shrink-0 border-t border-white/10 ${details.showMission === false ? 'mt-auto' : ''}`}>
+            <div className={`p-3 print:p-2 shrink-0 border-t border-white/10 ${details.showMission === false ? 'mt-auto' : ''}`}>
               <h4 className="text-[10px] print:text-[9px] uppercase tracking-[0.2em] font-black text-white/60 text-center mb-1 print:mb-0.5">Toastmasters Core Values</h4>
               <div className="w-full text-center font-black text-xs print:text-[11px] text-[#F2DF74] tracking-wide leading-tight">
                 Integrity, Respect, Service, and Excellence
@@ -229,7 +229,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
         </aside>
 
         {/* Main table set to exactly 67% width */}
-        <main className="w-[67%] p-5 print:p-3 bg-white agenda-main flex flex-col h-full overflow-hidden">
+        <main className="w-[67%] p-4 print:p-2 bg-white agenda-main flex flex-col h-full overflow-hidden">
           <table className="w-full border-collapse h-full">
             <thead className="print:h-[22px]">
               <tr className="border-b-2 border-gray-100 print:border-gray-800">
@@ -243,35 +243,35 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
               {segments.map((seg, idx) => {
                 const isSpeaker = seg.segment.toLowerCase().startsWith('speaker #');
                 return (
-                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-b border-gray-100 group print:bg-transparent print:border-gray-200 print:h-[28px]`}>
+                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-b border-gray-100 group print:bg-transparent print:border-gray-200 print:h-[22px]`}>
                     {/* Time column font size scaled up to approx 90% of row height with minimal padding */}
-                    <td className="text-left font-black text-[#004165] print:text-black py-3 print:py-0.5 text-xs print:text-[18px] print:leading-none w-20 print:w-16 align-middle">
-                      {isSpeaker && <span className="block text-[8px] print:text-[6px] uppercase tracking-widest text-slate-400 print:text-gray-600 mb-0.5 print:mb-0">{seg.segment}</span>}
+                    <td className="text-left font-black text-[#004165] print:text-black py-2 print:py-0.25 text-xs print:text-[16px] print:leading-none w-20 print:w-16 align-middle">
+                      {isSpeaker && <span className="block text-[7px] print:text-[5px] uppercase tracking-widest text-slate-400 print:text-gray-600 mb-0.25 print:mb-0">{seg.segment}</span>}
                       <span className="block w-full font-black tracking-tight">{seg.time}</span>
                     </td>
-                    <td className="text-center py-2 print:py-0.5 w-16 print:w-12 align-middle">
-                      <span className="block w-full text-gray-400 print:text-gray-900 font-bold text-[10px] print:text-[11px]">{seg.duration}</span>
+                    <td className="text-center py-1 print:py-0.25 w-16 print:w-12 align-middle">
+                      <span className="block w-full text-gray-400 print:text-gray-900 font-bold text-[9px] print:text-[10px]">{seg.duration}</span>
                     </td>
-                    <td className="px-3 print:px-1 py-2 print:py-0.5 overflow-hidden align-middle">
+                    <td className="px-2 print:px-0.5 py-1 print:py-0.25 overflow-hidden align-middle">
                       {isSpeaker ? (
-                        <div className="font-black text-[#004165] text-xs print:text-[10px] leading-tight print:leading-[1.1] whitespace-pre-wrap break-words print:text-black">
+                        <div className="font-black text-[#004165] text-xs print:text-[9px] leading-tight print:leading-[1.05] whitespace-pre-wrap break-words print:text-black">
                           {seg.details}
                         </div>
                       ) : (
                         <>
-                          <div className="font-black text-[#004165] print:text-black print:text-[10px] uppercase tracking-tight leading-tight print:leading-[1.1] whitespace-normal break-words">
+                          <div className="font-black text-[#004165] print:text-black print:text-[9px] uppercase tracking-tight leading-tight print:leading-[1.05] whitespace-normal break-words">
                             {seg.segment}
                           </div>
                           {seg.details && (
-                            <div className="text-[9px] print:text-[8px] text-gray-500 print:text-gray-800 font-medium leading-tight print:leading-[1.1] whitespace-pre-wrap break-words mt-0.5 print:mt-0">
+                            <div className="text-[8px] print:text-[7px] text-gray-500 print:text-gray-800 font-medium leading-tight print:leading-[1.05] whitespace-pre-wrap break-words mt-0.25 print:mt-0">
                               {seg.details}
                             </div>
                           )}
                         </>
                       )}
                     </td>
-                    <td className="px-3 print:px-1 py-2 print:py-0.5 overflow-hidden align-middle text-right">
-                      <div className="font-black text-[#772432] print:text-black print:text-[10px] leading-tight print:leading-[1.1] whitespace-normal break-words inline-block">
+                    <td className="px-2 print:px-0.5 py-1 print:py-0.25 overflow-hidden align-middle text-right">
+                      <div className="font-black text-[#772432] print:text-black print:text-[9px] leading-tight print:leading-[1.05] whitespace-normal break-words inline-block">
                         {seg.assignedTo === 'N/A' || seg.assignedTo === 'n/a' ? '' : seg.assignedTo}
                       </div>
                     </td>
@@ -285,7 +285,7 @@ export const StitchAgenda: React.FC<StitchAgendaProps> = ({
 
       {/* Full-width Footer for Announcements */}
       {details.showAnnouncements !== false && details.announcements && (
-        <footer className="bg-[#004165] text-white p-4 print:p-3.5 shrink-0 border-t-2 border-[#772432] text-center">
+        <footer className="bg-[#004165] text-white p-3 print:p-2 shrink-0 border-t-2 border-[#772432] text-center">
           <div className="max-w-5xl mx-auto space-y-1">
             <h4 className="text-xs print:text-[10px] uppercase tracking-[0.3em] font-black text-[#F2DF74] leading-none">Announcements</h4>
             <div className="text-sm print:text-[13px] font-black italic text-white whitespace-pre-wrap break-words leading-tight">

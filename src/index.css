@@ -76,4 +76,11 @@
     border: none !important;
     overflow: hidden !important;
   }
+
+  /* Scale content to fit A4 at 85% - reduces empty space, fits on 1 page */
+  #agenda-page {
+    transform: scale(0.85) !important;
+    transform-origin: top center !important;
+    width: 100% !important;
+  }
 }
