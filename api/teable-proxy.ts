@@ -26,9 +26,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Teable API usually expects /api/v1 prefix if not provided
-    const targetPath = path.startsWith('/v1') ? path : `/v1${path}`;
-    const url = `https://api.teable.io${targetPath}`;
+    // Match the Vite dev proxy target (app.teable.ai/api) so dev and prod behave identically
+    const url = `https://app.teable.ai/api${path}`;
     
     console.log(`Proxying ${method} to ${url}`);
 
